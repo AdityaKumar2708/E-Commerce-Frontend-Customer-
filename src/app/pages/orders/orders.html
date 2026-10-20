@@ -1,0 +1,484 @@
+
+<div class="orders-page">
+  <div class="orders-container">
+
+
+<div class="orders-back-row">
+  <button type="button" class="back-btn" (click)="goBack()">
+    <span aria-hidden="true">←</span>
+    Back
+  </button>
+</div>
+
+
+    <div class="page-heading">
+      <div>
+        <span class="eyebrow">YOUR ACCOUNT</span>
+        <h1>My Orders</h1>
+        <p>Track and manage your purchases.</p>
+      </div>
+
+      <button
+        class="refresh-button"
+        type="button"
+        (click)="loadOrders()"
+        [disabled]="loading">
+        ↻ Refresh
+      </button>
+    </div>
+
+    <div class="orders-summary" *ngIf="!loading && orders.length > 0">
+      <div class="summary-icon">📦</div>
+      <div>
+        <strong>{{ orders.length }} {{ orders.length === 1 ? 'Order' : 'Orders' }}</strong>
+        <p>Your order history</p>
+      </div>
+    </div>
+
+    <div class="loading-state" *ngIf="loading">
+      Loading your orders...
+    </div>
+
+    <div class="empty-state" *ngIf="!loading && orders.length === 0">
+      <div class="empty-icon">🛍️</div>
+      <h2>No orders found</h2>
+      <p>{{ errorMessage || 'Your placed orders will appear here once they are saved.' }}</p>
+      <a href="/">Continue Shopping</a>
+    </div>
+
+    <div class="orders-list" *ngIf="!loading && orders.length > 0">
+
+      <article class="order-card" *ngFor="let order of orders">
+
+        <!-- ORDER SUMMARY -->
+        <div class="order-header">
+          <div>
+            <span class="muted-label">ORDER ID</span>
+            <strong class="order-id">#{{ order.id }}</strong>
+          </div>
+
+          <span
+            class="status-badge"
+            [ngClass]="getStatusClass(order.status)">
+            {{ order.status }}
+          </span>
+        </div>
+
+        <div class="order-meta">
+          <span>Placed on {{ formatDate(order.date) }}</span>
+          <span>{{ getItemCount(order) }} item(s)</span>
+        </div>
+
+        <div class="order-products">
+          <div class="product-row" *ngFor="let item of order.items">
+            
+<div class="product-image">
+  <img
+    *ngIf="item.image && !item.imageFailed"
+    [src]="item.image"
+    [alt]="item.name"
+    loading="lazy"
+    (error)="item.imageFailed = true">
+
+  <span *ngIf="!item.image || item.imageFailed">📦</span>
+</div>
+
+
+            <div class="product-details">
+              <h3>{{ item.name }}</h3>
+              <p>Qty: {{ item.quantity }}</p>
+            </div>
+
+            <strong class="product-price">
+              ₹{{ item.totalPrice | number:'1.2-2' }}
+            </strong>
+
+            <div class="product-review" *ngIf="order.status === 'DELIVERED'">
+  <button
+    type="button"
+    class="review-toggle"
+    (click)="item.reviewOpen = !item.reviewOpen">
+    {{ item.reviewOpen ? 'Close Review' : 'Rate Product' }}
+  </button>
+
+  <div class="review-form" *ngIf="item.reviewOpen">
+    <p class="review-label">Your rating *</p>
+
+    <div class="review-stars">
+      <button
+        type="button"
+        *ngFor="let star of [1, 2, 3, 4, 5]"
+        [class.selected]="star <= item.rating"
+        [attr.aria-label]="'Rate ' + star + ' stars'"
+        (click)="setRating(item, star)">
+        ★
+      </button>
+    </div>
+
+    <label class="review-label">Your review (optional)</label>
+
+    <textarea
+      rows="3"
+      maxlength="2000"
+      placeholder="Share your experience..."
+      [value]="item.reviewText"
+      (input)="item.reviewText = $any($event.target).value">
+    </textarea>
+
+    <button
+  type="button"
+  class="review-submit"
+  [disabled]="
+    item.reviewSubmitting ||
+    item.rating < 1 ||
+    item.rating > 5
+  "
+  (click)="submitReview(item, order)">
+  {{ item.reviewSubmitting ? 'Submitting...' : 'Submit Review' }}
+</button>
+  </div>
+
+  <p class="review-message" *ngIf="item.reviewMessage">
+    {{ item.reviewMessage }}
+  </p>
+</div>
+
+          </div>
+        </div>
+
+        <div class="order-footer">
+          <div>
+            <span class="muted-label">TOTAL AMOUNT</span>
+            <strong class="order-total">
+              ₹{{ order.total | number:'1.2-2' }}
+            </strong>
+          </div>
+
+          <button
+            type="button"
+            class="view-details-button"
+            (click)="toggleDetails(order)"
+            [attr.aria-expanded]="isExpanded(order)">
+            {{ isExpanded(order) ? 'Hide Details ▲' : 'View Details ▼' }}
+          </button>
+        </div>
+
+        <!-- EXPANDED ORDER DETAILS -->
+        <section class="order-details" *ngIf="isExpanded(order)">
+
+          <div class="details-heading">
+            <h2>Order Details</h2>
+            <span>Order #{{ order.id }}</span>
+          </div>
+
+          <!-- STATUS AND DATES -->
+          <div class="details-section">
+            <h3>Order Information</h3>
+
+            <div class="details-grid">
+              <div>
+                <span>Order Status</span>
+                <strong>{{ order.status }}</strong>
+              </div>
+
+              <div>
+                <span>Order Date</span>
+                <strong>{{ formatDate(order.date) }}</strong>
+              </div>
+
+              <div *ngIf="order.updatedAt">
+                <span>Last Updated</span>
+                <strong>{{ formatDate(order.updatedAt) }}</strong>
+              </div>
+
+              <div *ngIf="order.fulfillmentType">
+                <span>Fulfillment Type</span>
+                <strong>{{ order.fulfillmentType }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- CUSTOMER INFORMATION -->
+          <div class="details-section"
+               *ngIf="order.customerName || order.customerEmail || order.customerPhone">
+            <h3>Customer Information</h3>
+
+            <div class="details-grid">
+              <div *ngIf="order.customerName">
+                <span>Name</span>
+                <strong>{{ order.customerName }}</strong>
+              </div>
+
+              <div *ngIf="order.customerEmail">
+                <span>Email</span>
+                <strong>{{ order.customerEmail }}</strong>
+              </div>
+
+              <div *ngIf="order.customerPhone">
+                <span>Phone</span>
+                <strong>{{ order.customerPhone }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- DELIVERY ADDRESS -->
+          <div class="details-section"
+               *ngIf="order.addressLine1 || order.addressLine2 ||
+                      order.city || order.state || order.pinCode">
+            <h3>Delivery Address</h3>
+
+            <p class="address-text">
+              <span *ngIf="order.addressLine1">{{ order.addressLine1 }}<br></span>
+              <span *ngIf="order.addressLine2">{{ order.addressLine2 }}<br></span>
+              <span *ngIf="order.city">{{ order.city }}, </span>
+              <span *ngIf="order.state">{{ order.state }} </span>
+              <span *ngIf="order.pinCode">- {{ order.pinCode }}</span>
+            </p>
+          </div>
+
+          <!-- PAYMENT INFORMATION -->
+          <div class="details-section">
+            <h3>Payment Information</h3>
+
+            <div class="details-grid">
+              <div>
+                <span>Payment Status</span>
+                <strong>{{ order.paymentStatus }}</strong>
+              </div>
+
+              <div *ngIf="order.paymentMethod">
+                <span>Payment Method</span>
+                <strong>{{ order.paymentMethod }}</strong>
+              </div>
+
+              <div *ngIf="order.razorpayOrderId">
+                <span>Razorpay Order ID</span>
+                <strong>{{ order.razorpayOrderId }}</strong>
+              </div>
+
+              <div *ngIf="order.razorpayPaymentId">
+                <span>Razorpay Payment ID</span>
+                <strong>{{ order.razorpayPaymentId }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- PRICE BREAKDOWN -->
+          <div class="details-section">
+            <h3>Price Details</h3>
+
+            <div class="price-breakdown">
+              <div>
+                <span>Product Total</span>
+                <span>₹{{ order.productTotal | number:'1.2-2' }}</span>
+              </div>
+
+              <div>
+                <span>Delivery Charge</span>
+                <span>₹{{ order.deliveryCharge | number:'1.2-2' }}</span>
+              </div>
+
+              <div>
+                <span>Discount</span>
+                <span>- ₹{{ order.discount | number:'1.2-2' }}</span>
+              </div>
+
+              <div class="grand-total">
+                <strong>Total Paid / Payable</strong>
+                <strong>₹{{ order.total | number:'1.2-2' }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- ORDER CANCELLATION -->
+<!-- ORDER CANCELLATION -->
+<div class="details-section" *ngIf="canCancelOrder(order)">
+  <h3>Cancel Order</h3>
+
+  <p class="details-note">
+    {{ getCancellationHint(order) }}
+  </p>
+
+  <p *ngIf="order.cancellationError" class="error-message">
+    {{ order.cancellationError }}
+  </p>
+
+  <button
+    type="button"
+    class="cancel-order-button"
+    (click)="cancelOrder(order)"
+    [disabled]="order.cancellationLoading">
+    {{ order.cancellationLoading ? 'Cancelling...' : 'Cancel Order' }}
+  </button>
+</div>
+
+                                                
+
+
+
+<!-- ONLINE ORDER: SHIPROCKET INFORMATION ONLY -->
+<ng-container *ngIf="order.fulfillmentType === 'ONLINE'">
+
+  <div class="details-section">
+    <h3>Shipment Information</h3>
+
+    <div class="details-grid">
+      <div>
+        <span>Shipment Status</span>
+        <strong>{{ order.shiprocketStatus || 'Not available yet' }}</strong>
+      </div>
+
+      <div>
+        <span>Shipment ID</span>
+        <strong>{{ order.shiprocketShipmentId || 'Not assigned yet' }}</strong>
+      </div>
+
+      <div>
+        <span>AWB / Tracking Number</span>
+        <strong>{{ order.shiprocketAwbCode || 'Not assigned yet' }}</strong>
+      </div>
+    </div>
+
+    <div class="tracking-actions" *ngIf="order.shiprocketAwbCode">
+      <button
+        type="button"
+        class="track-order-button"
+        (click)="loadTracking(order)"
+        [disabled]="order.trackingLoading">
+
+        {{ order.trackingLoading ? 'Fetching tracking...' : '📍 Track Order' }}
+      </button>
+    </div>
+
+    <p class="tracking-error" *ngIf="order.trackingError">
+      {{ order.trackingError }}
+    </p>
+
+    <p class="shipment-error" *ngIf="order.shiprocketError">
+      {{ order.shiprocketError }}
+    </p>
+
+    <div class="live-tracking-panel" *ngIf="order.trackingDetails as tracking">
+
+      <div class="tracking-panel-heading">
+        <div>
+          <span class="muted-label">LIVE SHIPMENT TRACKING</span>
+          <h4>{{ getTrackingStatus(order) }}</h4>
+        </div>
+        <span class="tracking-indicator">● Tracking response received</span>
+      </div>
+
+      <div class="tracking-meta">
+        <div>
+          <span>AWB Number</span>
+          <strong>{{ order.shiprocketAwbCode }}</strong>
+        </div>
+
+        <div *ngIf="order.shiprocketShipmentId">
+          <span>Shipment ID</span>
+          <strong>{{ order.shiprocketShipmentId }}</strong>
+        </div>
+      </div>
+
+      <div
+        class="tracking-timeline"
+        *ngIf="getTrackingActivities(order).length > 0">
+
+        <h4>Shipment Journey</h4>
+
+        <div
+          class="tracking-event"
+          *ngFor="let activity of getTrackingActivities(order); let last = last">
+
+          <div class="timeline-marker">
+            <span></span>
+            <div *ngIf="!last" class="timeline-line"></div>
+          </div>
+
+          <div class="tracking-event-content">
+            <strong>{{ getActivityText(activity) }}</strong>
+
+            <p *ngIf="getActivityDate(activity)">
+              {{ getActivityDate(activity) }}
+            </p>
+
+            <p *ngIf="getActivityLocation(activity)">
+              📍 {{ getActivityLocation(activity) }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <p
+        class="tracking-empty"
+        *ngIf="getTrackingActivities(order).length === 0">
+        Tracking data is available, but no shipment activity history was returned.
+      </p>
+
+      <a
+        *ngIf="getTrackingUrl(order)"
+        class="courier-tracking-link"
+        [href]="getTrackingUrl(order)"
+        target="_blank"
+        rel="noopener noreferrer">
+        Open Courier Tracking ↗
+      </a>
+    </div>
+
+    <p class="details-note">
+      Tracking updates depend on the courier's shipment data.
+    </p>
+  </div>
+
+</ng-container>
+
+
+<!-- STORE PICKUP ORDER: ADMIN-MANAGED STATUS ONLY -->
+<ng-container *ngIf="order.fulfillmentType === 'STORE_PICKUP'">
+
+  <div class="details-section">
+    <h3>Store Pickup Information</h3>
+
+    <div class="details-grid">
+      <div>
+        <span>Pickup Status</span>
+        <strong>{{ getPickupStatusLabel(order.status) }}</strong>
+      </div>
+
+      <div *ngIf="order.pickedUpAt">
+        <span>Picked Up At</span>
+        <strong>{{ formatDate(order.pickedUpAt) }}</strong>
+      </div>
+
+      <div *ngIf="order.pickupStore">
+        <span>Pickup Location</span>
+        <strong>{{ order.pickupStore }}</strong>
+      </div>
+    </div>
+
+    <p class="details-note">
+      Your store pickup status is updated by the store administrator.
+      Email notifications depend on the order status update and email service.
+    </p>
+  </div>
+
+</ng-container>
+
+
+<!-- SHIPMENT INFORMATION SECTION CLOSED -->
+
+          <div class="details-note"
+               *ngIf="!order.customerName && !order.customerEmail &&
+                      !order.customerPhone && !order.addressLine1 &&
+                      !order.addressLine2 && !order.city && !order.state &&
+                      !order.pinCode">
+            Customer and address details were not included in the API response.
+          </div>
+
+        </section>
+
+      </article>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,37 @@
+<main class="cart-page">
+  <a class="back-link" routerLink="/">← Continue shopping</a>
+  <h1>Your cart</h1>
+
+  <section class="empty-cart" *ngIf="cart.items().length === 0">
+    <p>Your cart is empty.</p>
+    <a class="primary-link" routerLink="/">Browse products</a>
+  </section>
+
+  <ng-container *ngIf="cart.items().length > 0">
+    <article class="cart-item" *ngFor="let item of cart.items()">
+      <div class="cart-image">
+        <img *ngIf="item.imageUrl; else imagePlaceholder" [src]="item.imageUrl" [alt]="item.name" />
+        <ng-template #imagePlaceholder><span aria-hidden="true">📦</span></ng-template>
+      </div>
+      <div class="item-details">
+        <h2>{{ item.name }}</h2>
+        <p>{{ item.category }} · ₹{{ item.price | number:'1.2-2' }} each</p>
+      </div>
+      <div class="item-controls">
+        <button type="button" (click)="cart.setQuantity(item.id, item.quantity - 1)" aria-label="Decrease quantity">−</button>
+        <span>{{ item.quantity }}</span>
+        <button type="button" (click)="cart.setQuantity(item.id, item.quantity + 1)" [disabled]="item.quantity >= item.stock" aria-label="Increase quantity">+</button>
+        <button type="button" class="remove-button" (click)="cart.removeItem(item.id)">Remove</button>
+      </div>
+      <strong>₹{{ item.price * item.quantity | number:'1.2-2' }}</strong>
+    </article>
+
+    <div class="cart-summary">
+      <button type="button" class="clear-button" (click)="cart.clear()">Clear cart</button>
+      <div class="summary-total">
+        <p>Subtotal <strong>₹{{ cart.subtotal() | number:'1.2-2' }}</strong></p>
+        <button type="button" class="buy-all-button" (click)="buyAll()">Buy all</button>
+      </div>
+    </div>
+  </ng-container>
+</main>

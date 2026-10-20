@@ -1,0 +1,558 @@
+<div class="store-pickup-page">
+
+  <!-- HEADER -->
+  <header class="site-header">
+
+    <div class="header-inner">
+
+      <!-- BRAND -->
+      <a
+        routerLink="/"
+        class="brand"
+        aria-label="Rajesh Stationery & Novelty Home"
+      >
+        <span class="brand-main">Rajesh</span>
+        <span class="brand-sub">Stationery & Novelty</span>
+      </a>
+
+      <!-- SEARCH -->
+      <div class="search-wrapper">
+
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search products..."
+          [value]="searchText"
+          (input)="onSearch($any($event.target).value)"
+        />
+
+        <span class="search-icon">⌕</span>
+
+      </div>
+
+      <!-- HEADER ACTIONS -->
+      <div class="header-actions">
+
+        <button
+          type="button"
+          class="header-btn"
+          (click)="goToOnlineStore()"
+        >
+          Online Store
+        </button>
+
+        <button
+          type="button"
+          class="cart-btn"
+          (click)="openCart()"
+        >
+          🛒
+          <span>Cart</span>
+
+          <span
+            class="cart-count"
+            *ngIf="cartCount > 0"
+          >
+            {{ cartCount }}
+          </span>
+        </button>
+
+        <button
+          *ngIf="!isLoggedIn"
+          type="button"
+          class="header-btn login-btn"
+          (click)="login()"
+        >
+          Login
+        </button>
+
+        <button
+          *ngIf="isLoggedIn"
+          type="button"
+          class="header-btn account-btn"
+          (click)="openAccount()"
+        >
+          Account
+        </button>
+
+      </div>
+
+    </div>
+
+  </header>
+
+
+  <!-- PICKUP NOTICE -->
+  <section class="pickup-notice">
+
+    <div class="pickup-notice-inner">
+
+      <div class="pickup-notice-icon">
+        🏪
+      </div>
+
+      <div class="pickup-notice-content">
+
+        <h2>
+          Store Pickup
+        </h2>
+
+        <p>
+          <strong>Please remember:</strong>
+          Store Pickup orders are not delivered to your location.
+          You will need to visit the store to collect your order.
+        </p>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- PAGE HERO -->
+  <section class="pickup-hero">
+
+    <div class="pickup-hero-content">
+
+      <span class="pickup-label">
+        STORE PICKUP
+      </span>
+
+      <h1>
+        Order Online.<br />
+        Collect From Store.
+      </h1>
+
+      <p>
+        Shop your favourite stationery and novelty products
+        at special store pickup prices.
+      </p>
+
+      <button
+        type="button"
+        class="hero-back-btn"
+        (click)="goToOnlineStore()"
+      >
+        ← Back to Online Store
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- CATEGORY BAR -->
+  <section class="category-section">
+
+    <div class="category-inner">
+
+      <button
+        type="button"
+        class="category-btn"
+        [class.active]="selectedCategory === 'All'"
+        (click)="selectCategory('All')"
+      >
+        All
+      </button>
+
+      <button
+        *ngFor="let category of categories"
+        type="button"
+        class="category-btn"
+        [class.active]="selectedCategory === category"
+        (click)="selectCategory(category)"
+      >
+        {{ category }}
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- PRODUCTS -->
+  <main
+    id="products"
+    class="products-section"
+  >
+
+    <div class="products-header">
+
+      <div>
+
+        <span class="section-label">
+          PICKUP COLLECTION
+        </span>
+
+        <h2>
+          Shop & Collect
+        </h2>
+
+        <p>
+          Choose your products and collect them from our store.
+        </p>
+
+      </div>
+
+      <div
+        *ngIf="searchText || selectedCategory !== 'All'"
+        class="filter-info"
+      >
+
+        <button
+          type="button"
+          class="clear-filter-btn"
+          (click)="clearFilters()"
+        >
+          Clear Filters
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- LOADING -->
+    <div
+      *ngIf="loading"
+      class="state-box"
+    >
+      <div class="loader"></div>
+
+      <p>
+        Loading products...
+      </p>
+    </div>
+
+
+    <!-- ERROR -->
+    <div
+      *ngIf="!loading && error"
+      class="state-box error-state"
+    >
+
+      <div class="state-icon">
+        ⚠
+      </div>
+
+      <h3>
+        Unable to load products
+      </h3>
+
+      <p>
+        {{ error }}
+      </p>
+
+      <button
+        type="button"
+        class="retry-btn"
+        (click)="loadProducts()"
+      >
+        Try Again
+      </button>
+
+    </div>
+
+
+    <!-- EMPTY -->
+    <div
+      *ngIf="
+        !loading &&
+        !error &&
+        filteredProducts.length === 0
+      "
+      class="state-box"
+    >
+
+      <div class="state-icon">
+        🔍
+      </div>
+
+      <h3>
+        No products found
+      </h3>
+
+      <p>
+        Try another search or category.
+      </p>
+
+      <button
+        type="button"
+        class="retry-btn"
+        (click)="clearFilters()"
+      >
+        Clear Filters
+      </button>
+
+    </div>
+
+
+    <!-- PRODUCT GRID -->
+    <div
+      *ngIf="
+        !loading &&
+        !error &&
+        filteredProducts.length > 0
+      "
+      class="product-grid"
+    >
+
+      <article
+        class="product-card"
+        *ngFor="
+          let product of filteredProducts;
+          trackBy: trackByProductId
+        "
+      >
+
+        <!-- IMAGE -->
+        <div
+          class="product-image-wrapper"
+          (click)="viewProduct(product)"
+        >
+
+          <img
+            *ngIf="product.imageUrl && !product.imageFailed"
+            [src]="product.imageUrl"
+            [alt]="product.name"
+            class="product-image"
+            (error)="product.imageFailed = true"
+          />
+
+          <div
+            *ngIf="!product.imageUrl || product.imageFailed"
+            class="image-placeholder"
+          >
+            <span>📦</span>
+          </div>
+
+
+          <!-- STOCK -->
+          <span
+            class="stock-badge"
+            [class.out-of-stock]="product.stock <= 0"
+          >
+            {{
+              product.stock > 0
+                ? 'In Stock'
+                : 'Out of Stock'
+            }}
+          </span>
+
+        </div>
+
+
+        <!-- PRODUCT INFO -->
+        <div class="product-info">
+
+          <span class="product-category">
+            {{ product.category }}
+          </span>
+
+          <h3
+            class="product-name"
+            (click)="viewProduct(product)"
+          >
+            {{ product.name }}
+          </h3>
+
+          <p
+            *ngIf="product.description"
+            class="product-description"
+          >
+            {{ product.description }}
+          </p>
+
+
+          <!-- PRICE -->
+          <div class="price-section">
+
+            <span class="price-label">
+              Pickup Price
+            </span>
+
+            <div class="price-row">
+
+              <strong class="pickup-price">
+                ₹{{ product.pickupPrice ?? product.price }}
+              </strong>
+
+              <span
+                *ngIf="product.pickupPrice && product.price > product.pickupPrice"
+                class="online-price"
+              >
+                ₹{{ product.price }}
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <!-- ACTIONS -->
+          <div class="product-actions">
+
+            <button
+              type="button"
+              class="view-btn"
+              (click)="viewProduct(product)"
+            >
+              View
+            </button>
+
+            <button
+              type="button"
+              class="add-cart-btn"
+              [disabled]="product.stock <= 0"
+              (click)="addToCart(product)"
+            >
+              Add to Cart
+            </button>
+
+            <button
+              type="button"
+              class="buy-btn"
+              [disabled]="product.stock <= 0"
+              (click)="buyNow(product)"
+            >
+              Buy Now
+            </button>
+
+          </div>
+
+        </div>
+
+      </article>
+
+    </div>
+
+  </main>
+
+
+  <!-- PICKUP INFORMATION -->
+  <section class="pickup-info-section">
+
+    <div class="pickup-info-inner">
+
+      <div class="pickup-info-card">
+
+        <div class="info-icon">
+          🛍️
+        </div>
+
+        <div>
+          <h3>
+            Order Online
+          </h3>
+
+          <p>
+            Select the products you want and place your
+            store pickup order.
+          </p>
+        </div>
+
+      </div>
+
+
+      <div class="pickup-info-card">
+
+        <div class="info-icon">
+          📍
+        </div>
+
+        <div>
+          <h3>
+            Visit Our Store
+          </h3>
+
+          <p>
+            Your order will not be delivered.
+            Please visit the store to collect it.
+          </p>
+        </div>
+
+      </div>
+
+
+      <div class="pickup-info-card">
+
+        <div class="info-icon">
+          ✅
+        </div>
+
+        <div>
+          <h3>
+            Collect Your Order
+          </h3>
+
+          <p>
+            Show your order details at the store
+            and collect your items.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+
+    <div class="footer-inner">
+
+      <div class="footer-brand">
+
+        <span class="brand-main">
+          Rajesh
+        </span>
+
+        <span class="brand-sub">
+          Stationery & Novelty
+        </span>
+
+        <p>
+          Quality stationery and novelty products
+          for everyday needs.
+        </p>
+
+      </div>
+
+
+      <div class="footer-links">
+
+        <button
+          type="button"
+          (click)="goToOnlineStore()"
+        >
+          Online Store
+        </button>
+
+        <button
+          type="button"
+          (click)="openCart()"
+        >
+          Cart
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <div class="footer-bottom">
+
+      <p>
+        © {{ currentYear }}
+        Rajesh Stationery & Novelty.
+        All rights reserved.
+      </p>
+
+    </div>
+
+  </footer>
+
+</div>

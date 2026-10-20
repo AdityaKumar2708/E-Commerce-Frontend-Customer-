@@ -1,0 +1,118 @@
+
+<div class="login-page">
+  <div class="login-card">
+
+    <a class="brand" routerLink="/">
+      <div class="brand-icon">R</div>
+      <div class="brand-text">
+        <h1>Rajesh Stationery <span>&amp; Novelty</span></h1>
+        <p>by <strong>rKind</strong></p>
+      </div>
+    </a>
+
+    <div class="login-heading">
+      <div class="login-icon">✉</div>
+
+      <h2>
+        {{ otpSent ? 'Verify Your Email' : 'Welcome Back' }}
+      </h2>
+
+      <p *ngIf="!otpSent">
+        Enter your email address to receive a one-time password.
+      </p>
+
+      <p *ngIf="otpSent">
+        We sent an OTP to <strong>{{ email }}</strong>.
+        Enter it below to continue.
+      </p>
+    </div>
+
+    <!-- EMAIL FORM -->
+    <form *ngIf="!otpSent" (ngSubmit)="sendOtp()">
+
+      <label for="email">Email Address</label>
+
+      <input
+        id="email"
+        type="email"
+        name="email"
+        [(ngModel)]="email"
+        placeholder="you@example.com"
+        autocomplete="email"
+        required
+        [disabled]="loading"
+      />
+
+      <button
+        type="submit"
+        class="primary-button"
+        [disabled]="loading"
+      >
+        {{ loading ? 'Sending OTP...' : 'Send OTP' }}
+      </button>
+
+    </form>
+
+    <!-- OTP FORM -->
+    <form *ngIf="otpSent" (ngSubmit)="verifyOtp()">
+
+      <label for="otp">One-Time Password</label>
+
+      <input
+        id="otp"
+        type="text"
+        name="otp"
+        [(ngModel)]="otp"
+        placeholder="Enter OTP"
+        inputmode="numeric"
+        autocomplete="one-time-code"
+        maxlength="8"
+        required
+        [disabled]="loading"
+      />
+
+      <button
+        type="submit"
+        class="primary-button"
+        [disabled]="loading || !otp.trim()"
+      >
+        {{ loading ? 'Verifying...' : 'Verify & Continue' }}
+      </button>
+
+      <button
+        type="button"
+        class="text-button"
+        (click)="changeEmail()"
+        [disabled]="loading"
+      >
+        Change email address
+      </button>
+
+      <button
+        type="button"
+        class="text-button"
+        (click)="sendOtp()"
+        [disabled]="loading"
+      >
+        {{ loading ? 'Sending...' : 'Resend OTP' }}
+      </button>
+
+    </form>
+
+    <!-- ERROR -->
+    <div class="error-message" *ngIf="error">
+      {{ error }}
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="success-message" *ngIf="success">
+      {{ success }}
+    </div>
+
+    <div class="login-footer">
+      <span>Secure email verification</span>
+      <a routerLink="/">Back to Store</a>
+    </div>
+
+  </div>
+</div>

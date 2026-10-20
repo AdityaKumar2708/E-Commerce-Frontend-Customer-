@@ -1,0 +1,592 @@
+<div class="checkout-page">
+  <header class="checkout-header">
+    <button type="button" class="back-shop" (click)="goToShop()">
+      ← Continue Shopping
+    </button>
+    <h1>Checkout</h1>
+  </header>
+
+  <main class="checkout-layout">
+    <section class="checkout-main">
+
+      <div class="checkout-steps">
+
+  <div
+    [class.active]="step === 1"
+    [class.completed]="step > 1"
+  >
+    <span>1</span>
+    {{ isStorePickup ? 'Pickup Details' : 'Address' }}
+  </div>
+
+  <div
+    [class.active]="step === 2"
+    [class.completed]="step > 2"
+  >
+    <span>2</span>
+    Contact
+  </div>
+
+  <div
+    [class.active]="step === 3"
+  >
+    <span>3</span>
+    Payment
+  </div>
+
+</div>
+
+      <!-- STEP 1 -->
+<section class="checkout-card" *ngIf="step === 1">
+
+  <!-- ============================= -->
+  <!-- STORE PICKUP -->
+  <!-- ============================= -->
+
+  <ng-container *ngIf="isStorePickup; else onlineAddress">
+
+    <h2>Store Pickup Details</h2>
+
+    <p>
+      Your order will be collected from our store.
+    </p>
+
+    <div class="pickup-time-notice">
+
+      <strong>Store Collection Time</strong>
+
+      <span>
+        9:00 AM – 7:00 PM
+      </span>
+
+      <small>
+        Please select your expected pickup time
+        within the store collection hours.
+      </small>
+
+    </div>
+
+    <div class="form-grid">
+
+      <label class="full-width">
+  Expected Pickup Time
+
+  <div
+    class="pickup-time-control"
+    [class.has-error]="!!pickupTimeError"
+  >
+    <span class="pickup-time-icon" aria-hidden="true">◷</span>
+
+    <input
+      type="time"
+      name="expectedPickupTime"
+      [ngModel]="expectedPickupTime"
+      (ngModelChange)="onPickupTimeChange($event)"
+      min="09:00"
+      max="19:00"
+      step="900"
+      aria-describedby="pickupTimeHint pickupTimeError"
+      [attr.aria-invalid]="!!pickupTimeError"
+    />
+  </div>
+
+  <small id="pickupTimeHint" class="field-hint">
+    Store hours: 9:00 AM–7:00 PM.
+    Pickup slots are available every 15 minutes.
+  </small>
+
+  <small
+    id="pickupTimeError"
+    class="field-error"
+    *ngIf="pickupTimeError"
+    role="alert"
+  >
+    {{ pickupTimeError }}
+  </small>
+</label>
+
+
+      <label class="full-width">
+
+        Customer Request
+        <span class="optional-label">
+          (Optional)
+        </span>
+
+        <textarea
+          name="customerRequest"
+          [(ngModel)]="customerRequest"
+          rows="5"
+          maxlength="500"
+          placeholder="Any special request for your pickup?"
+        ></textarea>
+
+        <small class="field-hint">
+          You can mention any request you want the store
+          team to know about.
+        </small>
+
+      </label>
+
+    </div>
+
+    <p
+      class="form-error"
+      *ngIf="error"
+    >
+      {{ error }}
+    </p>
+
+    <button
+      type="button"
+      class="continue-button"
+      (click)="continueToContact()"
+    >
+      Continue to Contact
+    </button>
+
+  </ng-container>
+
+
+  <!-- ============================= -->
+  <!-- ONLINE ORDER -->
+  <!-- ============================= -->
+
+  <ng-template #onlineAddress>
+
+    <h2>Delivery Address</h2>
+
+    <p>
+      Where should we deliver your order?
+    </p>
+
+
+<!-- SAVED ADDRESS SELECTOR -->
+<div class="saved-address-selector">
+
+  <label for="savedAddress">
+    <strong>Choose a Saved Address</strong>
+  </label>
+
+  <p *ngIf="savedAddressLoading">
+    Loading your saved addresses...
+  </p>
+
+  <select
+    id="savedAddress"
+    name="savedAddress"
+    [ngModel]="selectedSavedAddressId"
+    (ngModelChange)="onSavedAddressChange($event)"
+    [disabled]="savedAddressLoading || savedAddresses.length === 0"
+  >
+    <option [ngValue]="null">
+      Enter a new address manually
+    </option>
+
+    <option
+      *ngFor="let saved of savedAddresses"
+      [ngValue]="saved.id"
+    >
+      {{ saved.addressType }} -
+      {{ saved.house }},
+      {{ saved.area }},
+      {{ saved.city }} -
+      {{ saved.pincode }}
+      {{ saved.isDefault ? '(Default)' : '' }}
+    </option>
+  </select>
+
+  <p class="field-hint" *ngIf="savedAddresses.length === 0 && !savedAddressLoading">
+    No saved addresses found. Enter your delivery address below
+    or add an address from Saved Addresses.
+  </p>
+
+  <p class="field-error" *ngIf="savedAddressError">
+    {{ savedAddressError }}
+  </p>
+
+</div>
+<!-- END SAVED ADDRESS SELECTOR -->
+
+
+    <div class="form-grid">
+
+      <label class="full-width">
+        House / Flat / Building
+
+        <input
+          type="text"
+          name="house"
+          [(ngModel)]="address.house"
+          placeholder="House no., building name"
+        />
+      </label>
+
+
+      <label class="full-width">
+        Area / Street / Locality
+
+        <input
+          type="text"
+          name="area"
+          [(ngModel)]="address.area"
+          placeholder="Street, area or locality"
+        />
+      </label>
+
+
+      <label>
+        City
+
+        <input
+          type="text"
+          name="city"
+          [(ngModel)]="address.city"
+          placeholder="City"
+        />
+      </label>
+
+
+      <label>
+        State
+
+        <input
+          type="text"
+          name="state"
+          [(ngModel)]="address.state"
+          placeholder="State"
+        />
+      </label>
+
+
+      <label class="full-width">
+        PIN Code
+
+        <input
+          type="text"
+          name="pinCode"
+          [(ngModel)]="address.pinCode"
+          (ngModelChange)="onPinCodeChange()"
+          inputmode="numeric"
+          autocomplete="postal-code"
+          maxlength="6"
+          placeholder="6-digit PIN code"
+        />
+
+        <small
+          class="field-hint"
+          *ngIf="pinLoading"
+        >
+          Looking up city and state...
+        </small>
+
+        <small
+          class="field-hint"
+          *ngIf="pinMessage"
+        >
+          {{ pinMessage }}
+        </small>
+
+        <small
+          class="field-error"
+          *ngIf="pinError"
+        >
+          {{ pinError }}
+        </small>
+
+      </label>
+
+    </div>
+
+    <p
+      class="form-error"
+      *ngIf="error"
+    >
+      {{ error }}
+    </p>
+
+    <button
+      type="button"
+      class="continue-button"
+      (click)="continueToContact()"
+    >
+      Save Address & Continue
+    </button>
+
+  </ng-template>
+
+</section>
+
+      <!-- STEP 2: CONTACT -->
+      <section class="checkout-card" *ngIf="step === 2">
+        <h2>Contact Details</h2>
+        <p>Enter the details for order updates and delivery.</p>
+
+        <div class="form-grid">
+          <label class="full-width">
+            Full Name
+            <input
+              type="text"
+              name="fullName"
+              [(ngModel)]="contact.fullName"
+              placeholder="Your full name"
+            />
+          </label>
+
+          <label class="full-width">
+            Mobile Number
+            <input
+              type="tel"
+              name="mobile"
+              [(ngModel)]="contact.mobile"
+              inputmode="numeric"
+              maxlength="10"
+              placeholder="10-digit mobile number"
+            />
+          </label>
+
+          <label class="full-width">
+            Email Address
+            <input
+              type="email"
+              name="email"
+              [(ngModel)]="contact.email"
+              placeholder="you@example.com"
+            />
+          </label>
+        </div>
+
+        <p class="form-error" *ngIf="error">{{ error }}</p>
+
+        <div class="button-row">
+          <button type="button" class="back-button" (click)="back()">
+            Back
+          </button>
+          <button
+            type="button"
+            class="continue-button"
+            (click)="continueToPayment()">
+            Continue to Payment
+          </button>
+        </div>
+      </section>
+
+      <!-- STEP 3: PAYMENT -->
+      <section class="checkout-card" *ngIf="step === 3">
+        <h2>Payment Method</h2>
+        <p>Choose how you would like to pay.</p>
+
+        <div class="payment-options">
+          <label
+            class="payment-option"
+            [class.selected]="selectedPayment === 'UPI'">
+            <input
+              type="radio"
+              name="payment"
+              [checked]="selectedPayment === 'UPI'"
+              (change)="selectPayment('UPI')"
+            />
+            <span>
+              <strong>UPI</strong>
+              <small>Pay using a UPI app</small>
+            </span>
+          </label>
+
+          <label
+            class="payment-option"
+            [class.selected]="selectedPayment === 'CARD'">
+            <input
+              type="radio"
+              name="payment"
+              [checked]="selectedPayment === 'CARD'"
+              (change)="selectPayment('CARD')"
+            />
+            <span>
+              <strong>Credit / Debit Card</strong>
+              <small>Pay using your bank card</small>
+            </span>
+          </label>
+
+          <label
+            class="payment-option"
+            [class.selected]="selectedPayment === 'COD'">
+            <input
+              type="radio"
+              name="payment"
+              [checked]="selectedPayment === 'COD'"
+              (change)="selectPayment('COD')"
+            />
+            <span>
+              <strong>Cash on Delivery</strong>
+              <small>Pay when your order arrives</small>
+            </span>
+          </label>
+        </div>
+
+        <p class="form-error" *ngIf="error">{{ error }}</p>
+
+        <div class="button-row">
+          <button type="button" class="back-button" (click)="back()">
+            Back
+          </button>
+          <button
+            type="button"
+            class="continue-button"
+            (click)="confirmPaymentMethod()">
+            Continue
+          </button>
+        </div>
+      </section>
+    </section>
+
+    <!-- ORDER SUMMARY -->
+    <aside class="order-summary">
+      <h2>Order Summary</h2>
+
+      <div *ngIf="product; else missingProduct">
+        <div class="summary-product">
+          <div class="summary-image">📦</div>
+          <div>
+            <strong>{{ product.name }}</strong>
+            <p>{{ product.category }}</p>
+            <span>Qty: 1</span>
+          </div>
+        </div>
+
+        <!-- COUPON SECTION -->
+<div class="coupon-section">
+  <h3>Apply Coupon</h3>
+
+  <div class="coupon-input-row">
+    <input
+      type="text"
+      name="couponCode"
+      [(ngModel)]="couponCode"
+      placeholder="Enter coupon code"
+      [disabled]="!!appliedCoupon"
+    />
+
+    <button
+      type="button"
+      (click)="applyCoupon()"
+      [disabled]="couponLoading || !!appliedCoupon"
+    >
+      {{ couponLoading ? 'Applying...' : 'Apply' }}
+    </button>
+  </div>
+
+  <p class="coupon-success" *ngIf="couponMessage">
+    {{ couponMessage }}
+  </p>
+
+  <p class="coupon-error" *ngIf="couponError">
+    {{ couponError }}
+  </p>
+
+  <div *ngIf="appliedCoupon" class="applied-coupon">
+    <span>
+      {{ appliedCoupon.code }} applied
+    </span>
+
+    <button type="button" (click)="removeCoupon()">
+      Remove
+    </button>
+  </div>
+
+  <div *ngIf="availableCoupons.length > 0" class="available-coupons">
+    <p>Available offers</p>
+
+    <div
+      *ngFor="let coupon of availableCoupons"
+      class="available-coupon"
+    >
+      <div>
+        <strong>{{ coupon.code }}</strong>
+        <small>
+          <ng-container *ngIf="coupon.type === 'PERCENTAGE'">
+            {{ coupon.discountValue }}% OFF
+          </ng-container>
+
+          <ng-container *ngIf="coupon.type === 'FIXED'">
+            ₹{{ coupon.discountValue }} OFF
+          </ng-container>
+        </small>
+
+        <small *ngIf="coupon.minimumOrderValue">
+          Minimum order ₹{{ coupon.minimumOrderValue }}
+        </small>
+      </div>
+
+      <button
+        type="button"
+        [disabled]="!!appliedCoupon"
+        (click)="couponCode = coupon.code; applyCoupon()"
+      >
+        Apply
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- PRODUCT PRICE -->
+<div class="summary-line">
+  <span>Price</span>
+  <strong>
+    ₹{{ product.price | number:'1.2-2' }}
+  </strong>
+</div>
+
+<!-- DELIVERY CHARGE -->
+<div class="summary-line" *ngIf="!isStorePickup">
+  <span>Delivery</span>
+
+  <strong *ngIf="shippingLoading">
+    Calculating...
+  </strong>
+
+  <strong *ngIf="!shippingLoading && !shippingError">
+    ₹{{ shippingCharge | number:'1.2-2' }}
+  </strong>
+</div>
+
+<!-- STORE PICKUP -->
+<div class="summary-line" *ngIf="isStorePickup">
+  <span>Store Pickup</span>
+  <strong>Free</strong>
+</div>
+
+<!-- SHIPPING ERROR -->
+<div class="shipping-error" *ngIf="shippingError">
+  {{ shippingError }}
+</div>
+
+<!-- COURIER INFO -->
+<div
+  class="shipping-info"
+  *ngIf="shippingQuote && !shippingLoading && !isStorePickup"
+>
+  <span>{{ shippingQuote.courierName }}</span>
+  <span>{{ shippingQuote.estimatedDeliveryDays }} days</span>
+</div>
+
+
+<!-- FINAL TOTAL -->
+<div class="summary-total">
+  <span>Total</span>
+  <strong>
+    ₹{{ orderTotal | number:'1.2-2' }}
+  </strong>
+</div>
+
+      </div>
+
+      <ng-template #missingProduct>
+        <p>Selected product is not available. Please return to the shop and select it again.</p>
+        <button type="button" class="back-button" (click)="goToShop()">
+          Back to Shop
+        </button>
+      </ng-template>
+    </aside>
+  </main>
+</div>

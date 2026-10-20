@@ -1,0 +1,215 @@
+
+<div class="address-page">
+
+  <header class="page-header">
+
+    <button
+      type="button"
+      class="back-btn"
+      (click)="goBack()">
+      <span class="back-arrow">←</span>
+      Back
+    </button>
+
+    <div>
+      <h1>Saved Addresses</h1>
+      <p>Manage your delivery addresses</p>
+    </div>
+
+    <button
+      type="button"
+      class="primary-btn"
+      (click)="openAddForm()"
+      [disabled]="saving">
+      + Add New Address
+    </button>
+
+  </header>
+
+  <p class="success-message" *ngIf="message">{{ message }}</p>
+  <p class="error-message" *ngIf="error">{{ error }}</p>
+
+  <div class="loading-message" *ngIf="loading">
+    Loading addresses...
+  </div>
+
+  <section class="address-form" *ngIf="showForm">
+    <h2>{{ editingId !== null ? 'Edit Address' : 'Add New Address' }}</h2>
+
+    <form #addressForm="ngForm" (ngSubmit)="saveAddress()">
+      <div class="form-grid">
+        <label>
+          Full Name *
+          <input
+            name="fullName"
+            [(ngModel)]="form.fullName"
+            required
+            maxlength="100"
+            autocomplete="name">
+        </label>
+
+        <label>
+          Mobile Number *
+          <input
+            name="phone"
+            [(ngModel)]="form.phone"
+            required
+            inputmode="numeric"
+            maxlength="10"
+            autocomplete="tel">
+        </label>
+
+        <label>
+          Alternate Mobile
+          <input
+            name="alternatePhone"
+            [(ngModel)]="form.alternatePhone"
+            inputmode="numeric"
+            maxlength="10">
+        </label>
+
+        <label>
+          House / Flat / Building *
+          <input
+            name="house"
+            [(ngModel)]="form.house"
+            required
+            maxlength="150">
+        </label>
+
+        <label>
+          Street
+          <input
+            name="street"
+            [(ngModel)]="form.street"
+            maxlength="150">
+        </label>
+
+        <label>
+          Area / Locality *
+          <input
+            name="area"
+            [(ngModel)]="form.area"
+            required
+            maxlength="150">
+        </label>
+
+        <label>
+          Landmark
+          <input
+            name="landmark"
+            [(ngModel)]="form.landmark"
+            maxlength="150">
+        </label>
+
+        <label>
+          PIN Code *
+          <input
+            name="pincode"
+            [(ngModel)]="form.pincode"
+            required
+            inputmode="numeric"
+            maxlength="6">
+        </label>
+
+        <label>
+          City *
+          <input
+            name="city"
+            [(ngModel)]="form.city"
+            required
+            maxlength="100">
+        </label>
+
+        <label>
+          State *
+          <input
+            name="state"
+            [(ngModel)]="form.state"
+            required
+            maxlength="100">
+        </label>
+
+        <label>
+          Address Type *
+          <select name="addressType" [(ngModel)]="form.addressType" required>
+            <option value="Home">Home</option>
+            <option value="Work">Work</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="default-option">
+        <input
+          type="checkbox"
+          name="isDefault"
+          [(ngModel)]="form.isDefault">
+        Set as default address
+      </label>
+
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="primary-btn"
+          [disabled]="saving || addressForm.invalid">
+          {{ saving ? 'Saving...' : (editingId !== null ? 'Update Address' : 'Save Address') }}
+        </button>
+
+        <button
+          type="button"
+          class="secondary-btn"
+          (click)="cancelForm()"
+          [disabled]="saving">
+          Cancel
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <section class="address-list" *ngIf="!loading">
+    <div class="empty-state" *ngIf="addresses.length === 0">
+      <h2>No saved addresses yet</h2>
+      <p>Add an address for faster checkout.</p>
+      <button type="button" class="primary-btn" (click)="openAddForm()">
+        Add Your First Address
+      </button>
+    </div>
+
+    <article class="address-card" *ngFor="let address of addresses">
+      <div class="address-card-header">
+        <div>
+          <h3>{{ address.fullName }}</h3>
+          <span class="address-type">{{ address.addressType }}</span>
+          <span class="default-badge" *ngIf="address.isDefault">
+            Default
+          </span>
+        </div>
+
+        <div class="address-actions">
+          <button type="button" (click)="editAddress(address)">Edit</button>
+          <button
+            type="button"
+            class="delete-btn"
+            (click)="deleteAddress(address)">
+            Delete
+          </button>
+        </div>
+      </div>
+
+      <p>
+        {{ address.house }}
+        <span *ngIf="address.street">, {{ address.street }}</span>
+      </p>
+      <p>
+        {{ address.area }}
+        <span *ngIf="address.landmark">, Near {{ address.landmark }}</span>
+      </p>
+      <p>{{ address.city }}, {{ address.state }} - {{ address.pincode }}</p>
+      <p>Mobile: {{ address.phone }}</p>
+
+      <p *ngIf="address.alternatePhone">
+        Alternate: {{ address.alternatePhone }}
+      </p>
+    </article>
+  </section>
+</div>

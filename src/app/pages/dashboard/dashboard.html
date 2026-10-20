@@ -1,0 +1,427 @@
+
+<div class="shop-page">
+
+  <div class="sticky-navbar">
+  <!-- HEADER -->
+  <header class="shop-header">
+    <div class="header-container">
+
+      <a class="brand" routerLink="/">
+        <div class="brand-icon">
+          <span>R</span>
+        </div>
+        <div class="brand-text">
+          <h1>Rajesh Stationery <span>&amp; Novelty</span></h1>
+          <p>by <strong>rKind</strong></p>
+        </div>
+      </a>
+
+      <div class="search-box">
+  <span class="search-icon">⌕</span>
+
+  <input
+    type="search"
+    placeholder="Search by name, category or SKU..."
+    [(ngModel)]="searchText"
+    (ngModelChange)="onSearch($event)"
+    aria-label="Search products"
+  />
+
+  <button
+    type="button"
+    class="clear-search"
+    *ngIf="searchText"
+    (click)="clearFilters()"
+    aria-label="Clear search"
+  >
+    &times;
+  </button>
+</div>
+
+      <div class="header-actions">
+        <button class="cart-button" type="button" (click)="openCart()">
+          <span class="cart-icon">🛒</span>
+          <span class="cart-label">Cart</span>
+          <span class="cart-count">{{ cartCount || 0 }}</span>
+        </button>
+
+        <button
+          class="login-button"
+          type="button"
+          *ngIf="!isLoggedIn"
+          (click)="login()">
+          Login
+        </button>
+
+        <div class="account-menu" *ngIf="isLoggedIn">
+
+  <button
+    class="account-button"
+    type="button"
+    (click)="toggleAccountMenu()">
+
+    <span class="account-icon">♙</span>
+    Account
+    <span class="account-arrow">⌄</span>
+
+  </button>
+
+  <div
+    class="account-dropdown"
+    *ngIf="accountMenuOpen"
+    (click)="$event.stopPropagation()">
+
+    <button type="button" (click)="openAccount()">
+      <span>👤</span>
+      <span>My Account</span>
+    </button>
+
+    <button type="button" (click)="openOrders()">
+      <span>📦</span>
+      <span>My Orders</span>
+    </button>
+
+    <button type="button" (click)="manageAddress()">
+      <span>📍</span>
+      <span>Address Saved</span>
+    </button>
+    
+    <div class="account-dropdown-divider"></div>
+
+    <button
+      type="button"
+      class="logout-item"
+      (click)="logout()">
+
+      <span>↪</span>
+      <span>Logout</span>
+
+    </button>
+
+  </div>
+
+</div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- NAVIGATION -->
+  <nav class="category-nav">
+    <div class="category-nav-inner">
+      <button
+        type="button"
+        class="category-link"
+        [class.active]="selectedCategory === 'All'"
+        (click)="selectCategory('All')">
+        All Products
+      </button>
+
+      <button
+        type="button"
+        class="category-link"
+        *ngFor="let category of categories"
+        [class.active]="selectedCategory === category"
+        (click)="selectCategory(category)">
+        {{ category }}
+      </button>
+    </div>
+  </nav>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <span class="hero-tag">WELCOME TO OUR STORE</span>
+      <h2>Everything You Need,<br /><span>All in One Place.</span></h2>
+      <p>
+        Discover stationery essentials, school supplies, office products
+        and unique novelty items at Rajesh Stationery &amp; Novelty.
+      </p>
+      <button
+  type="button"
+  class="hero-button"
+  (click)="scrollToProducts()">
+  Explore Products <span>→</span>
+</button>
+    </div>
+
+    <div class="hero-decoration" aria-hidden="true">
+      <div class="hero-circle circle-one"></div>
+      <div class="hero-circle circle-two"></div>
+      <div class="hero-card">
+        <span class="hero-pencil">✏️</span>
+        <span class="hero-book">📒</span>
+        <span class="hero-gift">🎁</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- STORE BENEFITS -->
+  <section class="benefits-section">
+    <div class="benefit-item">
+      <span class="benefit-icon">✏️</span>
+      <div>
+        <h3>Everyday Stationery</h3>
+        <p>Essentials for school and office</p>
+      </div>
+    </div>
+
+    <div class="benefit-item">
+      <span class="benefit-icon">🎨</span>
+      <div>
+        <h3>Creative Supplies</h3>
+        <p>Bring your ideas to life</p>
+      </div>
+    </div>
+
+    <div class="benefit-item">
+      <span class="benefit-icon">🎁</span>
+      <div>
+        <h3>Novelty &amp; Gifts</h3>
+        <p>Find something special</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STORE PICKUP CTA -->
+<section class="store-pickup-section">
+  <div class="store-pickup-content">
+
+    <div class="store-pickup-icon">
+      🏪
+    </div>
+
+    <div class="store-pickup-text">
+      <span class="store-pickup-eyebrow">
+        SAVE MORE WITH STORE PICKUP
+      </span>
+
+      <h2>
+        Want Free Delivery &amp; a Lower Price?
+      </h2>
+
+      <p>
+        Order online and collect your order directly from our store.
+        Skip the delivery charge and enjoy a better price.
+      </p>
+
+      <div class="store-pickup-points">
+        <span>✓ No Delivery Charge</span>
+        <span>✓ Better Price</span>
+        <span>✓ Easy Store Pickup</span>
+      </div>
+    </div>
+
+    <div class="store-pickup-action">
+      <button
+  type="button"
+  class="store-pickup-button"
+  (click)="openStorePickup()">
+  Order & Collect
+</button>
+
+      <small>
+        Choose your products and select store pickup at checkout.
+      </small>
+    </div>
+
+  </div>
+</section>
+
+  <!-- PRODUCTS -->
+  <main class="products-section" id="products">
+    <div class="section-heading">
+      <div>
+        <span class="section-eyebrow">OUR COLLECTION</span>
+        <h2>Shop Stationery &amp; Novelty</h2>
+        <p>Explore products available in our store.</p>
+      </div>
+
+      <span class="product-total" *ngIf="!loading && !error">
+        {{ filteredProducts.length }} items
+      </span>
+    </div>
+
+    <!-- API LOADING -->
+    <div class="loading-state" *ngIf="loading">
+      <div class="loader"></div>
+      <h3>Loading products...</h3>
+      <p>Please wait while we fetch the latest products.</p>
+    </div>
+
+    <!-- API ERROR -->
+    <div class="error-state" *ngIf="!loading && error">
+      <div class="state-icon">!</div>
+      <h3>Unable to load products</h3>
+      <p>{{ error }}</p>
+      <button type="button" class="retry-button" (click)="loadProducts()">
+        Try Again
+      </button>
+    </div>
+
+    <!-- EMPTY RESULT -->
+    <div
+      class="empty-state"
+      *ngIf="!loading && !error && filteredProducts.length === 0">
+      <div class="state-icon">⌕</div>
+      <h3>No products found</h3>
+      <p>
+        We couldn't find any products matching your search.
+        Try another product name or category.
+      </p>
+      <button
+        type="button"
+        class="retry-button"
+        (click)="clearFilters()">
+        Clear Search
+      </button>
+    </div>
+
+    <!-- LIVE API PRODUCTS -->
+    <div
+      class="product-grid"
+      *ngIf="!loading && !error && filteredProducts.length > 0">
+
+      <article
+        class="product-card"
+        *ngFor="let product of filteredProducts">
+
+        <div class="product-image-wrap">
+        <img
+          *ngIf="product.imageUrl && !product.imageFailed"
+          class="product-image"
+          [src]="product.imageUrl"
+          [alt]="product.name"
+          (error)="product.imageFailed = true">
+        <div class="image-placeholder" *ngIf="!product.imageUrl || product.imageFailed">
+          <span>📦</span>
+          <small>Product image</small>
+        </div>
+
+        <span class="stock-badge" *ngIf="product.stock > 0">
+          <p>Stock: {{ product.stock }}</p>
+         In Stock
+        </span>
+
+        <span class="out-stock-badge" *ngIf="product.stock <= 0">
+          Out of Stock
+         </span>
+      </div>
+
+        <div class="product-info">
+          <span class="product-category">{{ product.category }}</span>
+
+<h3 class="product-name">
+  {{ product.name }}
+</h3>
+
+<div class="product-rating" *ngIf="product.rating !== undefined">
+  <span class="rating-stars">
+    ★★★★★
+  </span>
+
+  <span class="rating-value">
+    {{ product.rating | number:'1.1-1' }}
+  </span>
+
+  <span class="rating-label">
+    Customer rating
+  </span>
+</div>
+
+          <p class="product-description" *ngIf="product.description">
+            {{ product.description }}
+          </p>
+
+          <div class="product-bottom">
+            <div class="product-price">
+              <span class="price-label">Price</span>
+              <strong>₹{{ product.price }}</strong>
+            </div>
+
+            <button
+              type="button"
+              class="view-product-button"
+              (click)="viewProduct(product)">
+              View
+            </button>
+          </div>
+
+          <div class="product-actions">
+            <button
+              type="button"
+              class="add-cart-button"
+              [disabled]="product.stock <= 0"
+              (click)="addToCart(product)">
+              Add to Cart
+            </button>
+
+            <button
+  type="button"
+  class="buy-now-button"
+  [disabled]="product.stock <= 0"
+  (click)="buyNow(product)">
+  Buy Now
+</button>
+          </div>
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <!-- ABOUT -->
+  <section class="about-section">
+    <div class="about-content">
+      <span class="section-eyebrow">ABOUT OUR STORE</span>
+      <h2>Ideas Begin with the Right Supplies.</h2>
+      <p>
+        Rajesh Stationery &amp; Novelty by rKind brings together everyday
+        stationery, school and office essentials, creative supplies and
+        novelty items in one convenient place.
+      </p>
+    </div>
+    <div class="about-mark">
+      <span>R</span>
+      <small>by rKind</small>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="shop-footer">
+    <div class="footer-main">
+      <div class="footer-brand">
+        <h2>Rajesh Stationery <span>&amp; Novelty</span></h2>
+        <p>by <strong>rKind</strong></p>
+        <span>Stationery, creativity and little things that make your day.</span>
+      </div>
+
+      <div class="footer-links">
+        <h3>Quick Links</h3>
+        <a routerLink="/">Home</a>
+        <a href="#products">Shop Products</a>
+        <button type="button" (click)="login()" *ngIf="!isLoggedIn">
+          Login
+        </button>
+        <button type="button" (click)="openAccount()" *ngIf="isLoggedIn">
+          My Account
+        </button>
+      </div>
+
+      <div class="footer-links">
+        <h3>Shop Categories</h3>
+        <button
+          type="button"
+          *ngFor="let category of categories"
+          (click)="selectCategory(category); scrollToProducts()">
+          {{ category }}
+        </button>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© {{ currentYear }} Rajesh Stationery &amp; Novelty by rKind. All rights reserved.</p>
+    </div>
+  </footer>
+
+</div>
