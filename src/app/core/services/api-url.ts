@@ -1,5 +1,4 @@
-/** Keep the mobile devices on the same Mac/LAN host serving the storefront. */
+/** Base URL for the deployed E-Commerce backend. */
 export function apiBaseUrl(): string {
-  const hostname = typeof window === 'undefined' ? 'localhost' : window.location.hostname;
-  return `http://${hostname}:8080`;
+  return 'https://e-commerce-backend-kyir.onrender.com';
 }

@@ -1,0 +1,154 @@
+
+<div class="page-container">
+
+  <div class="page-header">
+    <div>
+      <h1>Returns & Exchanges</h1>
+      <p>Review customer requests and decide whether to approve or reject.</p>
+    </div>
+
+    <button class="refresh-btn"
+            type="button"
+            (click)="loadRequests()"
+            [disabled]="loading">
+      {{ loading ? 'Loading...' : 'Refresh' }}
+    </button>
+  </div>
+
+  <div class="summary">
+    <div class="summary-card">
+      <span>Pending Requests</span>
+      <strong>{{ requests.length }}</strong>
+    </div>
+    <div class="summary-card">
+      <span>Returns</span>
+      <strong>
+        {{ returnCount }}
+      </strong>
+    </div>
+    <div class="summary-card">
+      <span>Exchanges</span>
+      <strong>
+        {{ exchangeCount }}
+      </strong>
+    </div>
+  </div>
+
+  <div *ngIf="successMessage" class="alert success">
+    {{ successMessage }}
+  </div>
+
+  <div *ngIf="errorMessage" class="alert error">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="loading" class="empty-state">
+    Loading return and exchange requests...
+  </div>
+
+  <div *ngIf="!loading && requests.length === 0" class="empty-state">
+    <h3>No pending requests</h3>
+    <p>New customer requests will appear here.</p>
+  </div>
+
+  <div class="request-list" *ngIf="!loading && requests.length > 0">
+
+    <article class="request-card" *ngFor="let request of requests">
+
+      <div class="card-header">
+        <div>
+          <h2>Request #{{ request.id }}</h2>
+          <span class="request-date">
+            {{ request.createdAt ? (request.createdAt | date:'medium') : 'Date unavailable' }}
+          </span>
+        </div>
+
+        <span class="type-badge"
+              [class.exchange]="request.requestType === 'EXCHANGE'">
+          {{ request.requestType }}
+        </span>
+      </div>
+
+      <div class="details-grid">
+        <div>
+          <label>Order ID</label>
+          <strong>
+            {{ request.order?.orderNumber || request.order?.id || '—' }}
+          </strong>
+        </div>
+
+        <div>
+          <label>Customer</label>
+          <strong>{{ request.customer?.name || '—' }}</strong>
+          <small>{{ request.customer?.email || '' }}</small>
+        </div>
+
+        <div>
+          <label>Reason</label>
+          <strong>{{ request.reason }}</strong>
+        </div>
+
+        <div>
+          <label>Status</label>
+          <strong class="pending-status">{{ request.status }}</strong>
+        </div>
+      </div>
+
+      <div class="description"
+           *ngIf="request.customerDescription">
+        <label>Customer Description</label>
+        <p>{{ request.customerDescription }}</p>
+      </div>
+
+      <div class="actions"
+           *ngIf="rejectingRequestId !== request.id">
+        <button type="button"
+                class="approve-btn"
+                [disabled]="processingId !== null"
+                (click)="approveRequest(request)">
+          {{ processingId === request.id ? 'Processing...' : 'Accept Request' }}
+        </button>
+
+        <button type="button"
+                class="reject-btn"
+                [disabled]="processingId !== null"
+                (click)="openRejectForm(request)">
+          Reject Request
+        </button>
+      </div>
+
+      <div class="reject-panel"
+           *ngIf="rejectingRequestId === request.id">
+
+        <label [for]="'reason-' + request.id">
+          Rejection reason (required)
+        </label>
+
+        <textarea
+          [id]="'reason-' + request.id"
+          [(ngModel)]="rejectionReason"
+          placeholder="Explain why this request is rejected..."
+          rows="3"
+          maxlength="1000">
+        </textarea>
+
+        <div class="actions">
+          <button type="button"
+                  class="reject-btn"
+                  [disabled]="processingId !== null || !rejectionReason.trim()"
+                  (click)="rejectRequest(request)">
+            Confirm Rejection
+          </button>
+
+          <button type="button"
+                  class="cancel-btn"
+                  [disabled]="processingId !== null"
+                  (click)="cancelReject()">
+            Cancel
+          </button>
+        </div>
+      </div>
+
+    </article>
+  </div>
+</div>

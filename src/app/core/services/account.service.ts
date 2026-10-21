@@ -22,7 +22,7 @@ export interface AccountResponse {
 export class AccountService {
   private http = inject(HttpClient);
 
-  private readonly apiUrl = 'http://10.96.110.94:8080/api/account';
+  private readonly apiUrl = 'https://e-commerce-backend-kyir.onrender.com/api/account';
 
   private getHeaders(): HttpHeaders {
     const token =

@@ -146,7 +146,7 @@ export class Orders implements OnInit {
   private cdr = inject(ChangeDetectorRef);
 
   private readonly apiUrl =
-    'http://10.96.110.94:8080/api/customer/orders';
+    'http://https://e-commerce-backend-kyir.onrender.com:8080/api/customer/orders';
 
   orders: Order[] = [];
   loading = true;

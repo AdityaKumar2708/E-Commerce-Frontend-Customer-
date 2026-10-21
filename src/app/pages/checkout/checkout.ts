@@ -8,6 +8,8 @@ import {
   CustomerAddressService
 } from '../../core/services/customer-address';
 
+import { apiBaseUrl } from '../../core/services/api-url';
+
 
 interface Product {
   id: number;
@@ -101,8 +103,7 @@ availableCoupons: Array<{
   expiresAt?: string | null;
 }> = [];
 
-private readonly couponApi =
-  'http://10.96.94:8080/api/coupons';
+private readonly couponApi = `${apiBaseUrl()}/api/coupons`;
 
   shippingCharge = 0;
 shippingLoading = false;
@@ -765,7 +766,7 @@ const amount = Number(this.orderTotal.toFixed(2));
   console.log('Creating Razorpay order...', request);
 
   this.http.post<RazorpayOrderResponse>(
-    'http://10.96.110.94:8080/api/payment/create-order',
+    `${apiBaseUrl()}/api/payment/create-order`,
     request
   ).subscribe({
     next: (response) => {
@@ -834,7 +835,7 @@ handler: (paymentResponse: any) => {
   });
 
   this.http.post<any>(
-    'http://10.96.110.94:8080/api/payment/verify-and-create-order',
+    `${apiBaseUrl()}/api/payment/verify-and-create-order`,
     {
       razorpayOrderId: paymentResponse.razorpay_order_id,
       razorpayPaymentId: paymentResponse.razorpay_payment_id,
@@ -920,7 +921,7 @@ handler: (paymentResponse: any) => {
   };
 
   this.http.post<ShippingQuoteResponse>(
-    'http://10.96.110.94:8080/api/shipping/quote',
+    `${apiBaseUrl()}/api/shipping/quote`,
     request
   ).subscribe({
 
