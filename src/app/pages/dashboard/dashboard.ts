@@ -72,6 +72,8 @@ currentYear = new Date().getFullYear();
 
 constructor() {
   afterNextRender(() => {
+    this.isLoggedIn = !!localStorage.getItem('authToken');
+
     setTimeout(() => {
       this.loadProducts();
     }, 0);
@@ -104,7 +106,8 @@ categories: string[] = [];
 
 
 ngOnInit(): void {
-  this.isLoggedIn = !!localStorage.getItem('authToken');
+  // localStorage is accessed in afterNextRender
+  // to avoid errors during server-side rendering.
 }
 
 
