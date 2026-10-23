@@ -77,6 +77,9 @@ selectedSavedAddressId: number | null = null;
 savedAddressLoading = false;
 savedAddressError = '';
 
+shippingQuote: ShippingQuoteResponse | null = null;
+private shippingQuotePinCode: string | null = null;
+
   private pinLookupSequence = 0;
 
   product: Product | null = null;
@@ -108,7 +111,6 @@ private readonly couponApi = `${apiBaseUrl()}/api/coupons`;
   shippingCharge = 0;
 shippingLoading = false;
 shippingError = '';
-shippingQuote: ShippingQuoteResponse | null = null;
 
   step = 1;
   error = '';
@@ -323,6 +325,12 @@ onSavedAddressChange(id: number | null): void {
   // -----------------------------------
 
   onPinCodeChange(): void {
+
+    this.shippingQuote = null;
+this.shippingQuotePinCode = null;
+this.shippingCharge = 0;
+this.shippingError = '';
+this.shippingLoading = false;
 
     const pin = this.address.pinCode.trim();
 
@@ -593,6 +601,39 @@ get orderTotal(): number {
       return;
     }
 
+
+    // Delivery charge must be calculated before checkout can continue.
+    if (!this.isStorePickup) {
+      const pin = this.address.pinCode.trim();
+
+      if (this.shippingLoading) {
+        this.error = 'Please wait while delivery charge is calculated.';
+        return;
+      }
+
+      if (
+        !this.shippingQuote ||
+        this.shippingQuotePinCode !== pin
+      ) {
+        this.error = 'Calculating delivery charge. Please wait and try again.';
+
+        this.getShippingQuote(pin);
+        return;
+      }
+
+      const charge = Number(this.shippingQuote.shippingCharge);
+
+      if (!Number.isFinite(charge) || charge < 0) {
+        this.shippingQuote = null;
+        this.shippingQuotePinCode = null;
+        this.shippingCharge = 0;
+        this.shippingError = 'Invalid delivery charge received.';
+        this.error = this.shippingError;
+        return;
+      }
+    }
+
+
     // Save address for online orders.
     localStorage.setItem(
       'savedDeliveryAddress',
@@ -748,10 +789,35 @@ get orderTotal(): number {
   return;
 }
 
-if (!this.isStorePickup && this.shippingError) {
-  this.error = 'Please resolve the delivery charge issue before payment.';
-  return;
-}
+
+    // Never initiate payment without a valid shipping quote.
+    if (!this.isStorePickup) {
+      const pin = this.address.pinCode.trim();
+
+      if (this.shippingLoading) {
+        this.error = 'Please wait while delivery charge is calculated.';
+        return;
+      }
+
+      if (
+        !this.shippingQuote ||
+        this.shippingQuotePinCode !== pin
+      ) {
+        this.error = 'Delivery charge is not confirmed. Payment is blocked.';
+
+        this.getShippingQuote(pin);
+        return;
+      }
+
+      if (
+        !Number.isFinite(Number(this.shippingQuote.shippingCharge)) ||
+        Number(this.shippingQuote.shippingCharge) < 0
+      ) {
+        this.error = 'Invalid delivery charge. Payment is blocked.';
+        return;
+      }
+    }
+
 
 const amount = Number(this.orderTotal.toFixed(2));
   if (!amount || amount <= 0) {
@@ -894,19 +960,24 @@ handler: (paymentResponse: any) => {
     this.router.navigate(['/']);
   }
 
-  private getShippingQuote(pin: string): void {
+ 
+private getShippingQuote(pin: string): void {
+  if (this.isStorePickup) return;
 
-  if (this.isStorePickup) {
+  if (!this.product) {
+    this.shippingError = 'Product information is missing.';
     return;
   }
 
-  if (!this.product) {
+  if (!/^[1-9][0-9]{5}$/.test(pin)) {
+    this.shippingError = 'Enter a valid 6-digit PIN code.';
     return;
   }
 
   this.shippingLoading = true;
   this.shippingError = '';
   this.shippingQuote = null;
+  this.shippingQuotePinCode = null;
   this.shippingCharge = 0;
 
   const request = {
@@ -924,38 +995,37 @@ handler: (paymentResponse: any) => {
     `${apiBaseUrl()}/api/shipping/quote`,
     request
   ).subscribe({
-
     next: (response) => {
-
       this.shippingLoading = false;
 
+      const charge = Number(response?.shippingCharge);
+
+      if (!Number.isFinite(charge) || charge < 0) {
+        this.shippingError =
+          'The delivery service returned an invalid charge.';
+        return;
+      }
+
       this.shippingQuote = response;
+      this.shippingQuotePinCode = pin;
+      this.shippingCharge = charge;
 
-      this.shippingCharge =
-        Number(response.shippingCharge) || 0;
-
-      console.log(
-        'Shiprocket Shipping Quote:',
-        response
-      );
+      console.log('Shipping quote confirmed:', response);
     },
 
     error: (error) => {
-
       this.shippingLoading = false;
-
       this.shippingCharge = 0;
       this.shippingQuote = null;
+      this.shippingQuotePinCode = null;
 
-      console.error(
-        'Shipping Quote Error:',
-        error
-      );
+      console.error('Shipping Quote Error:', error);
 
       this.shippingError =
         error?.error?.message ||
-        'Unable to calculate delivery charge.';
+        'Unable to calculate delivery charge. Payment is blocked.';
     }
   });
 }
+
 }
