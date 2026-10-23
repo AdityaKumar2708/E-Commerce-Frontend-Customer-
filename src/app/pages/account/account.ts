@@ -1,5 +1,4 @@
 
-import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -8,6 +7,14 @@ import {
 } from '../../core/services/account.service';
 
 import { Router } from '@angular/router';
+
+import {
+  Component,
+  OnInit,
+  inject,
+  ChangeDetectorRef
+} from '@angular/core';
+
 
 @Component({
   selector: 'app-account',
@@ -30,6 +37,8 @@ export class Account implements OnInit {
   errorMessage = '';
   successMessage = '';
 
+  private cdr = inject(ChangeDetectorRef);
+
   private router = inject(Router);
 
 goBack(): void {
@@ -48,24 +57,35 @@ goBack(): void {
   }, 0);
 }
 
-  loadAccount(): void {
-    this.loading = true;
-    this.errorMessage = '';
+  
+loadAccount(): void {
+  this.loading = true;
+  this.errorMessage = '';
+  this.cdr.detectChanges();
 
-    this.accountService.getMyAccount().subscribe({
-      next: (response) => {
-        this.account = response;
-        this.editedName = response.fullName;
-        this.loading = false;
-      },
-      error: (error) => {
-        this.loading = false;
-        this.errorMessage =
-          error.error?.message ||
-          `Account load nahi hua (${error.status}). Backend aur API URL check karo.`;
-      }
-    });
-  }
+  this.accountService.getMyAccount().subscribe({
+    next: (response) => {
+      console.log('Account API response:', response);
+
+      this.account = response;
+      this.editedName = response.fullName ?? '';
+      this.loading = false;
+
+      this.cdr.detectChanges();
+    },
+    error: (error) => {
+      console.error('Account API error:', error);
+
+      this.loading = false;
+      this.errorMessage =
+        error.error?.message ||
+        `Account load nahi hua (${error.status}).`;
+
+      this.cdr.detectChanges();
+    }
+  });
+}
+
 
   startEditing(): void {
     if (!this.account) return;
