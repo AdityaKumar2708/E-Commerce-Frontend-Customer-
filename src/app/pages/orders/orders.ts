@@ -145,8 +145,10 @@ export class Orders implements OnInit {
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
 
-  private readonly apiUrl =
-    'http://https://e-commerce-backend-kyir.onrender.com:8080/api/customer/orders';
+  
+private readonly apiUrl =
+  'https://e-commerce-backend-kyir.onrender.com/api/customer/orders';
+
 
   orders: Order[] = [];
   loading = true;
