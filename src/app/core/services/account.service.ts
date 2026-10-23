@@ -24,19 +24,27 @@ export class AccountService {
 
   private readonly apiUrl = 'https://e-commerce-backend-kyir.onrender.com/api/account';
 
-  private getHeaders(): HttpHeaders {
-    const token =
-      localStorage.getItem('accessToken') ||
-      sessionStorage.getItem('accessToken');
+  
+private getHeaders(): HttpHeaders {
+  const token =
+    localStorage.getItem('authToken') ||
+    sessionStorage.getItem('authToken') ||
+    localStorage.getItem('accessToken') ||
+    sessionStorage.getItem('accessToken');
 
-    let headers = new HttpHeaders();
+  let headers = new HttpHeaders();
 
-    if (token) {
-      headers = headers.set('Authorization', `Bearer ${token}`);
-    }
+  if (token) {
+    const authorizationValue = token.startsWith('Bearer ')
+      ? token
+      : `Bearer ${token}`;
 
-    return headers;
+    headers = headers.set('Authorization', authorizationValue);
   }
+
+  return headers;
+}
+
 
   getMyAccount(): Observable<AccountResponse> {
     return this.http.get<AccountResponse>(
