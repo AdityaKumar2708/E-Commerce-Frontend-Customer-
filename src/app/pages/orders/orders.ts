@@ -194,9 +194,21 @@ private readonly apiUrl =
     });
 
     this.http.get<ApiOrder[]>(this.apiUrl, { headers }).subscribe({
-      next: (response) => {
-        const apiOrders = Array.isArray(response) ? response : [];
-        console.log('Orders API response:', response);
+      next: (response: any) => {
+  console.log('Orders API raw response:', response);
+  console.log('Is response an array?', Array.isArray(response));
+
+  let apiOrders: ApiOrder[] = [];
+
+  if (Array.isArray(response)) {
+    apiOrders = response;
+  } else if (Array.isArray(response?.orders)) {
+    apiOrders = response.orders;
+  } else if (Array.isArray(response?.data)) {
+    apiOrders = response.data;
+  }
+
+  console.log('Orders received:', apiOrders.length);
 
 apiOrders.forEach(order => {
   console.log('Order ID:', order.id);
