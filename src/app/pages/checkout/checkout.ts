@@ -1,4 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ChangeDetectorRef,
+  inject
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -76,6 +81,8 @@ savedAddresses: CustomerAddress[] = [];
 selectedSavedAddressId: number | null = null;
 savedAddressLoading = false;
 savedAddressError = '';
+
+private cdr = inject(ChangeDetectorRef);
 
 shippingQuote: ShippingQuoteResponse | null = null;
 private shippingQuotePinCode: string | null = null;
@@ -226,6 +233,8 @@ loadSavedAddresses(): void {
 
   this.addressService.getAddresses().subscribe({
     next: (addresses) => {
+      console.log('Saved addresses API response:', addresses);
+
       this.savedAddresses = addresses ?? [];
       this.savedAddressLoading = false;
 
@@ -236,17 +245,24 @@ loadSavedAddresses(): void {
       if (preferredAddress?.id != null) {
         this.onSavedAddressChange(preferredAddress.id);
       }
+
+      this.cdr.detectChanges();
+
+      console.log('Addresses assigned:', this.savedAddresses);
+      console.log('Selected address ID:', this.selectedSavedAddressId);
     },
+
     error: (err) => {
       console.error('Failed to load saved addresses:', err);
 
       this.savedAddressLoading = false;
       this.savedAddressError =
         'Saved addresses could not be loaded.';
+
+      this.cdr.detectChanges();
     }
   });
 }
-
 onSavedAddressChange(id: number | null): void {
   this.selectedSavedAddressId = id;
 
