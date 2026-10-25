@@ -263,6 +263,7 @@ loadSavedAddresses(): void {
     }
   });
 }
+
 onSavedAddressChange(id: number | null): void {
   this.selectedSavedAddressId = id;
 
@@ -780,20 +781,44 @@ get orderTotal(): number {
   // -----------------------------------
 
   selectPayment(method: string): void {
+  this.error = '';
 
-    this.selectedPayment = method;
+  const paymentMethod = method.trim().toUpperCase();
 
-    this.error = '';
+  if (
+    paymentMethod === 'COD' ||
+    paymentMethod === 'CASH_ON_DELIVERY' ||
+    paymentMethod === 'CASH ON DELIVERY'
+  ) {
+    this.selectedPayment = '';
+
+    alert(
+      'You are not eligible for Cash on Delivery (COD). Please select UPI OR CARD to continue.'
+    );
+
+    this.cdr.detectChanges();
+    return;
   }
+
+  this.selectedPayment = method;
+}
 
   confirmPaymentMethod(): void {
     
   this.error = '';
 
-  if (!this.selectedPayment) {
-    this.error = 'Please select a payment method.';
-    return;
-  }
+  if (
+  ['COD', 'CASH_ON_DELIVERY', 'CASH ON DELIVERY'].includes(
+    this.selectedPayment.trim().toUpperCase()
+  )
+) {
+  this.selectedPayment = '';
+  alert(
+    'You are not eligible for Cash on Delivery (COD). Please select Razorpay to continue.'
+  );
+  this.cdr.detectChanges();
+  return;
+}
 
   if (!this.product) {
     this.error = 'Product information is missing.';
@@ -833,24 +858,41 @@ get orderTotal(): number {
         return;
       }
     }
-
-
 const amount = Number(this.orderTotal.toFixed(2));
-  if (!amount || amount <= 0) {
-    this.error = 'Invalid payment amount.';
-    return;
-  }
 
-  const request = {
-    amount: amount
-  };
+if (!amount || amount <= 0) {
+  this.error = 'Invalid payment amount.';
+  return;
+}
 
-  console.log('Creating Razorpay order...', request);
+const token = localStorage.getItem('authToken');
 
-  this.http.post<RazorpayOrderResponse>(
-    `${apiBaseUrl()}/api/payment/create-order`,
-    request
-  ).subscribe({
+if (!token) {
+  this.error = 'Your session has expired. Please log in again.';
+  this.router.navigate(['/login'], {
+    queryParams: {
+      returnUrl: '/checkout'
+    }
+  });
+  return;
+}
+
+const request = {
+  amount: amount
+};
+
+const headers = new HttpHeaders({
+  Authorization: `Bearer ${token}`,
+  'Content-Type': 'application/json'
+});
+
+console.log('Creating Razorpay order...', request);
+
+this.http.post<RazorpayOrderResponse>(
+  `${apiBaseUrl()}/api/payment/create-order`,
+  request,
+  { headers }
+).subscribe({    
     next: (response) => {
 
       console.log('Razorpay Order Created:', response);
