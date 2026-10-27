@@ -187,7 +187,15 @@ shippingError = '';
 
     
 
-    const savedProduct = sessionStorage.getItem('buyNowProduct');
+    let savedProduct: string | null = null;
+
+if (typeof window !== 'undefined') {
+  try {
+    savedProduct = sessionStorage.getItem('buyNowProduct');
+  } catch (error) {
+    console.error('Session storage access failed:', error);
+  }
+}
 
     if (savedProduct) {
 

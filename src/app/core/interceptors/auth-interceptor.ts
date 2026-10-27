@@ -28,7 +28,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const http = inject(HttpClient);
   const router = inject(Router);
 
-  const token = localStorage.getItem('authToken');
+  const token = isPlatformBrowser(platformId)
+  ? localStorage.getItem('authToken')
+  : null;
 
   const isAuthRequest =
     req.url.includes('/api/auth/customer/send-otp') ||

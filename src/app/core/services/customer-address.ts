@@ -1,6 +1,6 @@
-
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { isPlatformBrowser } from '@angular/common';
 import { apiBaseUrl } from './api-url';
 import { Observable } from 'rxjs';
 
@@ -27,30 +27,35 @@ export interface CustomerAddress {
 })
 export class CustomerAddressService {
   private http = inject(HttpClient);
+  private platformId = inject(PLATFORM_ID);
 
   private readonly API_URL =
     `${apiBaseUrl()}/api/customer/addresses`;
 
-  
-private getHeaders(): HttpHeaders {
-  const token =
-    localStorage.getItem('authToken') ||
-    localStorage.getItem('accessToken');
+  private getHeaders(): HttpHeaders {
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
 
-  if (!token) {
-    throw new Error('JWT token not found. Please sign in again.');
+    // SSR ke waqt localStorage access nahi karna.
+    if (!isPlatformBrowser(this.platformId)) {
+      return headers;
+    }
+
+    const token =
+      localStorage.getItem('authToken') ||
+      localStorage.getItem('accessToken');
+
+    if (token) {
+      const authorization = token.startsWith('Bearer ')
+        ? token
+        : `Bearer ${token}`;
+
+      headers = headers.set('Authorization', authorization);
+    }
+
+    return headers;
   }
-
-  const authorization = token.startsWith('Bearer ')
-    ? token
-    : `Bearer ${token}`;
-
-  return new HttpHeaders({
-    Authorization: authorization,
-    'Content-Type': 'application/json'
-  });
-}
-
 
   getAddresses(): Observable<CustomerAddress[]> {
     return this.http.get<CustomerAddress[]>(

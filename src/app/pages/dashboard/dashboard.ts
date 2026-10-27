@@ -71,13 +71,17 @@ currentYear = new Date().getFullYear();
 
 
 constructor() {
-  afterNextRender(() => {
+afterNextRender(() => {
+  try {
     this.isLoggedIn = !!localStorage.getItem('authToken');
+  } catch (error) {
+    this.isLoggedIn = false;
+  }
 
-    setTimeout(() => {
-      this.loadProducts();
-    }, 0);
-  });
+  setTimeout(() => {
+    this.loadProducts();
+  }, 0);
+});
 }
 
 
@@ -242,13 +246,26 @@ addToCart(product: Product): void {
 }
 
 buyNow(product: Product): void {
-  // Save selected product before login check
   console.log('BUY NOW CLICKED:', product);
-  sessionStorage.setItem('buyNowProduct', JSON.stringify(product));
 
-  const token = localStorage.getItem('authToken');
+  // Browser storage access
+  if (typeof window === 'undefined') {
+    return;
+  }
 
-  // If user is not logged in, redirect to OTP login
+  sessionStorage.setItem(
+    'buyNowProduct',
+    JSON.stringify(product)
+  );
+
+  let token: string | null = null;
+
+try {
+  token = localStorage.getItem('authToken');
+} catch (error) {
+  token = null;
+}
+
   if (!token) {
     this.router.navigate(['/login'], {
       queryParams: {
@@ -260,7 +277,6 @@ buyNow(product: Product): void {
     return;
   }
 
-  // If logged in, go directly to checkout
   this.router.navigate(['/checkout'], {
     queryParams: {
       action: 'buy-now',
