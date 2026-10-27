@@ -63,12 +63,11 @@
 .brand-icon {
   width: 44px;
   height: 44px;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
   flex-shrink: 0;
-  background: transparent;
 }
 
 .brand-icon img {
