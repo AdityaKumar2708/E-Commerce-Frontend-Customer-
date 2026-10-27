@@ -200,13 +200,21 @@ private readonly apiUrl =
 
   let apiOrders: ApiOrder[] = [];
 
-  if (Array.isArray(response)) {
-    apiOrders = response;
-  } else if (Array.isArray(response?.orders)) {
-    apiOrders = response.orders;
-  } else if (Array.isArray(response?.data)) {
-    apiOrders = response.data;
-  }
+if (Array.isArray(response)) {
+  apiOrders = response;
+} else if (Array.isArray(response?.orders)) {
+  apiOrders = response.orders;
+} else if (Array.isArray(response?.data)) {
+  apiOrders = response.data;
+} else if (Array.isArray(response?.content)) {
+  apiOrders = response.content;
+} else if (Array.isArray(response?.data?.orders)) {
+  apiOrders = response.data.orders;
+}
+
+console.log('Complete API response:', response);
+console.log('Orders found:', apiOrders.length);
+console.log('Orders data:', apiOrders);
 
   console.log('Orders received:', apiOrders.length);
 
