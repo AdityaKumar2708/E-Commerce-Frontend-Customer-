@@ -1,11 +1,12 @@
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 
-import { Injectable, inject } from '@angular/core';
 import {
   HttpClient,
   HttpHeaders
 } from '@angular/common/http';
-import { Observable } from 'rxjs';
 
+import { isPlatformBrowser } from '@angular/common';
+import { Observable } from 'rxjs';
 export interface AccountResponse {
   id: number;
   fullName: string;
@@ -21,18 +22,24 @@ export interface AccountResponse {
 })
 export class AccountService {
   private http = inject(HttpClient);
+  private platformId = inject(PLATFORM_ID);
 
   private readonly apiUrl = 'https://e-commerce-backend-kyir.onrender.com/api/account';
 
-  
+
 private getHeaders(): HttpHeaders {
+  let headers = new HttpHeaders();
+
+  // Server-side rendering ke waqt browser storage access mat karo.
+  if (!isPlatformBrowser(this.platformId)) {
+    return headers;
+  }
+
   const token =
     localStorage.getItem('authToken') ||
     sessionStorage.getItem('authToken') ||
     localStorage.getItem('accessToken') ||
     sessionStorage.getItem('accessToken');
-
-  let headers = new HttpHeaders();
 
   if (token) {
     const authorizationValue = token.startsWith('Bearer ')

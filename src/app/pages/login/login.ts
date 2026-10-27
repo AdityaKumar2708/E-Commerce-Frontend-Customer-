@@ -19,6 +19,12 @@ interface AuthResponse {
   token?: string;
   accessToken?: string;
   jwt?: string;
+  refreshToken?: string;
+  tokenType?: string;
+  userId?: number;
+  fullName?: string;
+  email?: string;
+  role?: string;
   message?: string;
 }
 
@@ -120,7 +126,14 @@ export class Login {
           return;
         }
 
-        localStorage.setItem('authToken', token);
+localStorage.setItem('authToken', token);
+
+if (response.refreshToken) {
+  localStorage.setItem('refreshToken', response.refreshToken);
+} else {
+  localStorage.removeItem('refreshToken');
+  console.error('Login response mein refreshToken nahi mila:', response);
+}
 
         const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/';
         const safeReturnUrl =
