@@ -679,10 +679,10 @@ submitReview(item: OrderItem, order: Order): void {
   const status = this.normalizeStatus(order.status);
 
   // Rating is currently allowed only for delivered orders.
-  if (status !== 'DELIVERED') {
-    item.reviewMessage = 'You can review only delivered orders.';
-    return;
-  }
+  if (status !== 'DELIVERED' && status !== 'PICKED_UP') {
+  item.reviewMessage = 'You can review only delivered or picked-up orders.';
+  return;
+}
 
   if (!item.orderItemId) {
     item.reviewMessage =
@@ -740,5 +740,80 @@ submitReview(item: OrderItem, order: Order): void {
   });
 }
 
+openEmailHelp(order: any): void {
+  const orderId = order.id ?? order.orderId ?? 'N/A';
+  const orderStatus = order.status ?? 'N/A';
+
+  const items = order.items ?? order.orderItems ?? [];
+
+  const itemDetails = items.length
+    ? items.map((item: any, index: number) => {
+        const productName =
+          item.productName ??
+          item.name ??
+          item.product?.name ??
+          'Product';
+
+        const quantity = Number(item.quantity ?? 1);
+
+        const unitPrice = Number(
+          item.price ??
+          item.unitPrice ??
+          item.product?.price ??
+          0
+        );
+
+        const amount = Number(
+          item.totalPrice ?? item.subtotal ?? unitPrice * quantity
+        );
+
+        return [
+          `${index + 1}. Product: ${productName}`,
+          `   Product ID: ${item.productId ?? item.product?.id ?? 'N/A'}`,
+          `   Quantity: ${quantity}`,
+          `   Unit Price: ₹${unitPrice.toFixed(2)}`,
+          `   Item Amount: ₹${amount.toFixed(2)}`
+        ].join('\n');
+      }).join('\n\n')
+    : 'Product details are unavailable.';
+
+  const totalAmount = Number(
+    order.totalAmount ?? order.totalPrice ?? order.total ?? 0
+  );
+
+  const subject = `Support Request - Order #${orderId}`;
+
+  const body = [
+    'Hello Support Team,',
+    '',
+    'I need assistance with my order. Please find the order details below:',
+    '',
+    '========== ORDER DETAILS ==========',
+    `Order ID: ${orderId}`,
+    `Order Status: ${orderStatus}`,
+    '',
+    '========== ORDERED ITEMS ==========',
+    itemDetails,
+    '',
+    `Total Order Amount: ₹${totalAmount.toFixed(2)}`,
+    '',
+    '========== YOUR QUERY ==========',
+    'Please describe your issue below:',
+    '',
+    '',
+    '===================================',
+    '',
+    'Please review my request and assist me.',
+    '',
+    'Thank you.'
+  ].join('\n');
+
+  const mailto =
+    `mailto:info@rajeshstaionery.store` +
+    `?subject=${encodeURIComponent(subject)}` +
+    `&body=${encodeURIComponent(body)}`;
+
+  window.location.href = mailto;
+}
 
 }

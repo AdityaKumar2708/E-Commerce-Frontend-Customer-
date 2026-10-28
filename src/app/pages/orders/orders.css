@@ -1379,3 +1379,32 @@ button {
   font-size: 13px;
   overflow-wrap: anywhere;
 }
+
+.order-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.email-help-btn {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #dbe3ec;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.email-help-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.email-help-btn .material-symbols-outlined {
+  font-size: 20px;
+}

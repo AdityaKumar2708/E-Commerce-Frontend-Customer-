@@ -51,18 +51,32 @@
       <article class="order-card" *ngFor="let order of orders">
 
         <!-- ORDER SUMMARY -->
-        <div class="order-header">
-          <div>
-            <span class="muted-label">ORDER ID</span>
-            <strong class="order-id">#{{ order.id }}</strong>
-          </div>
+       <!-- ORDER SUMMARY -->
+<div class="order-header">
+  <div>
+    <span class="muted-label">ORDER ID</span>
+    <strong class="order-id">#{{ order.id }}</strong>
+  </div>
 
-          <span
-            class="status-badge"
-            [ngClass]="getStatusClass(order.status)">
-            {{ order.status }}
-          </span>
-        </div>
+  <div class="order-header-actions">
+    <!-- Email Help Icon -->
+    <button
+  type="button"
+  class="email-help-btn"
+  title="Email Help"
+  aria-label="Email Help"
+  (click)="openEmailHelp(order)">
+  <span class="material-symbols-outlined">mail</span>
+</button>
+
+    <!-- Order Status -->
+    <span
+      class="status-badge"
+      [ngClass]="getStatusClass(order.status)">
+      {{ order.status }}
+    </span>
+  </div>
+</div>
 
         <div class="order-meta">
           <span>Placed on {{ formatDate(order.date) }}</span>
@@ -93,7 +107,9 @@
               ₹{{ item.totalPrice | number:'1.2-2' }}
             </strong>
 
-            <div class="product-review" *ngIf="order.status === 'DELIVERED'">
+            <div
+  class="product-review"
+  *ngIf="order.status === 'DELIVERED' || order.status === 'PICKED_UP'">
   <button
     type="button"
     class="review-toggle"
