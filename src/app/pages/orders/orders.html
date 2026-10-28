@@ -83,84 +83,107 @@
           <span>{{ getItemCount(order) }} item(s)</span>
         </div>
 
-        <div class="order-products">
-          <div class="product-row" *ngFor="let item of order.items">
-            
-<div class="product-image">
-  <img
-    *ngIf="item.image && !item.imageFailed"
-    [src]="item.image"
-    [alt]="item.name"
-    loading="lazy"
-    (error)="item.imageFailed = true">
+<div class="order-products">
 
-  <span *ngIf="!item.image || item.imageFailed">📦</span>
-</div>
+  <div class="product-item" *ngFor="let item of order.items">
 
+    <!-- PRODUCT ROW -->
+    <div class="product-row">
 
-            <div class="product-details">
-              <h3>{{ item.name }}</h3>
-              <p>Qty: {{ item.quantity }}</p>
-            </div>
+      <!-- PRODUCT IMAGE -->
+      <div class="product-image">
+        <img
+          *ngIf="item.image && !item.imageFailed"
+          [src]="item.image"
+          [alt]="item.name"
+          loading="lazy"
+          (error)="item.imageFailed = true">
 
-            <strong class="product-price">
-              ₹{{ item.totalPrice | number:'1.2-2' }}
-            </strong>
+        <span *ngIf="!item.image || item.imageFailed">📦</span>
+      </div>
 
-            <div
-  class="product-review"
-  *ngIf="order.status === 'DELIVERED' || order.status === 'PICKED_UP'">
-  <button
-    type="button"
-    class="review-toggle"
-    (click)="item.reviewOpen = !item.reviewOpen">
-    {{ item.reviewOpen ? 'Close Review' : 'Rate Product' }}
-  </button>
+      <!-- PRODUCT NAME AND QUANTITY -->
+      <div class="product-details">
+        <h3>{{ item.name }}</h3>
+        <p>Qty: {{ item.quantity }}</p>
+      </div>
 
-  <div class="review-form" *ngIf="item.reviewOpen">
-    <p class="review-label">Your rating *</p>
+      <!-- PRODUCT PRICE -->
+      <strong class="product-price">
+        ₹{{ item.totalPrice | number:'1.2-2' }}
+      </strong>
 
-    <div class="review-stars">
-      <button
-        type="button"
-        *ngFor="let star of [1, 2, 3, 4, 5]"
-        [class.selected]="star <= item.rating"
-        [attr.aria-label]="'Rate ' + star + ' stars'"
-        (click)="setRating(item, star)">
-        ★
-      </button>
     </div>
 
-    <label class="review-label">Your review (optional)</label>
+    <!-- PRODUCT REVIEW -->
+    <div
+      class="product-review"
+      *ngIf="order.status === 'DELIVERED' || order.status === 'PICKED_UP'">
 
-    <textarea
-      rows="3"
-      maxlength="2000"
-      placeholder="Share your experience..."
-      [value]="item.reviewText"
-      (input)="item.reviewText = $any($event.target).value">
-    </textarea>
+      <button
+        type="button"
+        class="review-toggle"
+        (click)="item.reviewOpen = !item.reviewOpen">
 
-    <button
-  type="button"
-  class="review-submit"
-  [disabled]="
-    item.reviewSubmitting ||
-    item.rating < 1 ||
-    item.rating > 5
-  "
-  (click)="submitReview(item, order)">
-  {{ item.reviewSubmitting ? 'Submitting...' : 'Submit Review' }}
-</button>
+        {{ item.reviewOpen ? 'Close Review' : 'Rate Product' }}
+
+      </button>
+
+      <!-- REVIEW FORM -->
+      <div class="review-form" *ngIf="item.reviewOpen">
+
+        <p class="review-label">Your rating *</p>
+
+        <div class="review-stars">
+          <button
+            type="button"
+            *ngFor="let star of [1, 2, 3, 4, 5]"
+            [class.selected]="star <= item.rating"
+            [attr.aria-label]="'Rate ' + star + ' stars'"
+            (click)="setRating(item, star)">
+
+            ★
+
+          </button>
+        </div>
+
+        <label class="review-label">
+          Your review (optional)
+        </label>
+
+        <textarea
+          rows="3"
+          maxlength="2000"
+          placeholder="Share your experience..."
+          [value]="item.reviewText"
+          (input)="item.reviewText = $any($event.target).value">
+        </textarea>
+
+        <button
+          type="button"
+          class="review-submit"
+          [disabled]="
+            item.reviewSubmitting ||
+            item.rating < 1 ||
+            item.rating > 5
+          "
+          (click)="submitReview(item, order)">
+
+          {{ item.reviewSubmitting ? 'Submitting...' : 'Submit Review' }}
+
+        </button>
+
+      </div>
+
+      <p class="review-message" *ngIf="item.reviewMessage">
+        {{ item.reviewMessage }}
+      </p>
+
+    </div>
+
   </div>
 
-  <p class="review-message" *ngIf="item.reviewMessage">
-    {{ item.reviewMessage }}
-  </p>
 </div>
-
-          </div>
-        </div>
 
         <div class="order-footer">
           <div>

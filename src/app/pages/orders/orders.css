@@ -1408,3 +1408,74 @@ button {
 .email-help-btn .material-symbols-outlined {
   font-size: 20px;
 }
+
+/* Product wrapper */
+.product-item {
+  width: 100%;
+  min-width: 0;
+  border-bottom: 1px solid #edf0f5;
+}
+
+.product-item:last-child {
+  border-bottom: none;
+}
+
+/* Keep product details in a horizontal row */
+.product-item .product-row {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  width: 100%;
+  min-width: 0;
+  padding: 21px 0;
+  border-bottom: none;
+}
+
+/* Product name must not collapse vertically */
+.product-item .product-details {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.product-item .product-details h3 {
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Review stays underneath the product row */
+.product-item .product-review {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0 0 18px 0;
+}
+
+/* Review form should use the available width */
+.product-item .review-form {
+  width: 100%;
+  max-width: 600px;
+}
+
+/* Mobile layout */
+@media (max-width: 600px) {
+  .product-item .product-row {
+    gap: 11px;
+    padding: 15px 0;
+  }
+
+  .product-item .product-image {
+    flex: 0 0 61px;
+    width: 61px;
+    height: 61px;
+  }
+
+  .product-item .product-details {
+    flex: 1 1 0;
+  }
+
+  .product-item .product-price {
+    flex-shrink: 0;
+    font-size: 12px;
+  }
+}
