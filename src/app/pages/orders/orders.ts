@@ -80,6 +80,7 @@ interface OrderItem {
   reviewText: string;
   reviewOpen: boolean;
   reviewSubmitting: boolean;
+  reviewSubmitted: boolean;
   reviewMessage: string;
 }
 
@@ -240,10 +241,11 @@ apiOrders.forEach(order => {
   totalPrice: Number(item.totalPrice) || price * quantity,
 
   rating: 0,
-  reviewText: '',
-  reviewOpen: false,
-  reviewSubmitting: false,
-  reviewMessage: ''
+reviewText: '',
+reviewOpen: false,
+reviewSubmitting: false,
+reviewSubmitted: false,
+reviewMessage: ''
 };
           });
 
@@ -671,11 +673,19 @@ getPickupStatusLabel(status: string | null | undefined): string {
 }
 
 setRating(item: OrderItem, rating: number): void {
+  if (item.reviewSubmitted || item.reviewSubmitting) {
+    return;
+  }
+
   item.rating = rating;
 }
 
 
 submitReview(item: OrderItem, order: Order): void {
+  if (item.reviewSubmitted || item.reviewSubmitting) {
+    return;
+  }
+
   const status = this.normalizeStatus(order.status);
 
   // Rating is currently allowed only for delivered orders.
@@ -723,12 +733,13 @@ submitReview(item: OrderItem, order: Order): void {
     { headers }
   ).subscribe({
     next: (response) => {
-      item.reviewSubmitting = false;
-      item.reviewMessage =
-        response?.message || 'Review submitted successfully.';
-      item.reviewOpen = false;
-      this.cdr.detectChanges();
-    },
+  item.reviewSubmitting = false;
+  item.reviewSubmitted = true;
+  item.reviewMessage =
+    response?.message || 'Review submitted successfully.';
+  item.reviewOpen = false;
+  this.cdr.detectChanges();
+},
     error: (error) => {
       item.reviewSubmitting = false;
       item.reviewMessage =

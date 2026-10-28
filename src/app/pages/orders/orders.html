@@ -66,7 +66,7 @@
   title="Email Help"
   aria-label="Email Help"
   (click)="openEmailHelp(order)">
-  <span class="material-symbols-outlined">mail</span>
+  <span class="email-icon" aria-hidden="true">✉</span>
 </button>
 
     <!-- Order Status -->
@@ -120,33 +120,44 @@
       class="product-review"
       *ngIf="order.status === 'DELIVERED' || order.status === 'PICKED_UP'">
 
-      <button
-        type="button"
-        class="review-toggle"
-        (click)="item.reviewOpen = !item.reviewOpen">
+      <!-- Show button only if review is not submitted -->
+<button
+  *ngIf="!item.reviewSubmitted"
+  type="button"
+  class="review-toggle"
+  [disabled]="item.reviewSubmitting"
+  (click)="item.reviewOpen = !item.reviewOpen">
 
-        {{ item.reviewOpen ? 'Close Review' : 'Rate Product' }}
+  {{ item.reviewOpen ? 'Close Review' : 'Rate Product' }}
 
-      </button>
+</button>
 
       <!-- REVIEW FORM -->
-      <div class="review-form" *ngIf="item.reviewOpen">
+      <div class="review-form" *ngIf="item.reviewOpen || item.reviewSubmitted">
 
         <p class="review-label">Your rating *</p>
 
-        <div class="review-stars">
-          <button
-            type="button"
-            *ngFor="let star of [1, 2, 3, 4, 5]"
-            [class.selected]="star <= item.rating"
-            [attr.aria-label]="'Rate ' + star + ' stars'"
-            (click)="setRating(item, star)">
+        <!-- Non-clickable stars after review submission -->
+<div class="review-stars" *ngIf="item.reviewSubmitted">
+  <span
+    *ngFor="let star of [1, 2, 3, 4, 5]"
+    [class.selected]="star <= item.rating">
+    ★
+  </span>
+</div>
 
-            ★
-
-          </button>
-        </div>
-
+<!-- Clickable stars before review submission -->
+<div class="review-stars" *ngIf="!item.reviewSubmitted">
+  <button
+    type="button"
+    *ngFor="let star of [1, 2, 3, 4, 5]"
+    [class.selected]="star <= item.rating"
+    [disabled]="item.reviewSubmitting"
+    [attr.aria-label]="'Rate ' + star + ' stars'"
+    (click)="setRating(item, star)">
+    ★
+  </button>
+</div>
         <label class="review-label">
           Your review (optional)
         </label>
