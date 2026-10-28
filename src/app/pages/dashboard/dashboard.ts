@@ -317,6 +317,9 @@ try {
   this.router.navigate(['/store-pickup']);
 }
 
+showAppComingSoon(platform: string): void {
+  alert(`${platform} app is coming very soon! Stay tuned.`);
+}
 
 
 }
