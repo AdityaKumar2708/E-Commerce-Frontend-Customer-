@@ -1,5 +1,10 @@
 
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ChangeDetectorRef,
+  inject
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -40,6 +45,7 @@ export class ProductDetails implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private cart = inject(CartService);
+  private cdr = inject(ChangeDetectorRef);
 
   private readonly API_URL = `${apiBaseUrl()}/api/products`;
 
@@ -68,34 +74,45 @@ export class ProductDetails implements OnInit {
     });
   }
 
-  loadProduct(id: number): void {
-    this.loading = true;
-    this.error = '';
 
-    this.http.get<Product>(`${this.API_URL}/${id}`).subscribe({
-      next: product => {
-        this.product = product;
+loadProduct(id: number): void {
+  this.loading = true;
+  this.error = '';
+  this.cdr.detectChanges();
 
-        const allImages = [
-          ...(product.imageUrls || []),
-          ...(product.imageUrl ? [product.imageUrl] : [])
-        ];
+  this.http.get<Product>(`${this.API_URL}/${id}`).subscribe({
+    next: (product) => {
+      console.log('Product API Response:', product);
 
-        this.images = [...new Set(allImages)]
-          .filter(Boolean)
-          .map(url => this.resolveImageUrl(url));
+      this.product = product;
 
-        this.selectedImage = this.images[0] || '';
+      const allImages = [
+        ...(product.imageUrls || []),
+        ...(product.imageUrl ? [product.imageUrl] : [])
+      ];
 
-        this.loading = false;
-      },
-      error: err => {
-        console.error('Product details error:', err);
-        this.error = 'Unable to load this product. Please try again.';
-        this.loading = false;
-      }
-    });
-  }
+      this.images = [...new Set(allImages)]
+        .filter(Boolean)
+        .map(url => this.resolveImageUrl(url));
+
+      this.selectedImage = this.images[0] || '';
+
+      this.loading = false;
+      this.cdr.detectChanges();
+
+      console.log('Product loaded successfully:', this.product);
+    },
+
+    error: (err) => {
+      console.error('Product details API Error:', err);
+
+      this.error = 'Unable to load this product. Please try again.';
+      this.loading = false;
+
+      this.cdr.detectChanges();
+    }
+  });
+}
 
   private resolveImageUrl(url: string): string {
     if (/^https?:\/\//i.test(url)) return url;
