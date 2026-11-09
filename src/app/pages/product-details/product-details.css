@@ -423,6 +423,8 @@
   cursor: pointer;
 }
 
+
+/* TABLET RESPONSIVE */
 @media (max-width: 800px) {
   .details-page {
     padding: 15px 12px 40px;
@@ -447,6 +449,7 @@
   }
 }
 
+/* MOBILE RESPONSIVE */
 @media (max-width: 480px) {
   .main-image {
     height: 280px;
@@ -474,14 +477,24 @@
     font-size: 19px;
   }
 
+  .back-button,
+  .share-button {
+    padding: 10px 11px;
+    font-size: 11px;
+  }
+
+  .share-menu {
+    width: 195px;
+  }
+}
 
 /* TOP BAR - BACK AND SHARE */
-
 .details-topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 15px;
+  width: 100%;
   margin-bottom: 25px;
 }
 
@@ -497,6 +510,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: 0.2s;
+  white-space: nowrap;
 }
 
 .back-button {
@@ -511,6 +525,7 @@
 
 .share-wrapper {
   position: relative;
+  margin-left: auto;
 }
 
 .share-button {
@@ -567,16 +582,26 @@
   color: #2874f0;
 }
 
-@media (max-width: 480px) {
-  .back-button,
-  .share-button {
-    padding: 10px 11px;
-    font-size: 11px;
-  }
-
-  .share-menu {
-    width: 195px;
-  }
+/* REVIEW PHOTO */
+.review-photo {
+  display: block;
+  max-width: 180px;
+  max-height: 180px;
+  object-fit: contain;
+  border-radius: 8px;
+  margin-top: 12px;
+  border: 1px solid #eee;
 }
 
+/* MOBILE TOP BAR */
+@media (max-width: 480px) {
+  .details-topbar {
+    gap: 8px;
+  }
+
+  .back-button,
+  .share-button {
+    padding: 10px 9px;
+    font-size: 11px;
+  }
 }
