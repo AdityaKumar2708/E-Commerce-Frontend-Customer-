@@ -7,6 +7,7 @@ import { Checkout } from './pages/checkout/checkout';
 import { Login } from './pages/login/login';
 import { StorePickup } from './pages/store-pickup/store-pickup';
 import { AddressSaved } from './pages/address-saved/address-saved';
+import { ProductDetails } from './pages/product-details/product-details';
 
 export const routes: Routes = [
   {
@@ -44,6 +45,10 @@ export const routes: Routes = [
     path: 'address-saved',
     component: AddressSaved
   },
+  {
+  path: 'product/:id',
+  component: ProductDetails
+},
   {
     path: '**',
     redirectTo: ''

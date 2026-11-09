@@ -1,1 +1,204 @@
-<p>product-details works!</p>
+
+<div class="details-page">
+
+  <!-- TOP BAR -->
+  <div class="details-topbar">
+    <button class="back-button" type="button" routerLink="/">
+      <span>←</span> Back to Products
+    </button>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="loader"></div>
+    <p>Loading product details...</p>
+  </div>
+
+  <!-- ERROR -->
+  <div class="error-state" *ngIf="!loading && error">
+    <h2>Product unavailable</h2>
+    <p>{{ error }}</p>
+    <button routerLink="/">Back to Store</button>
+  </div>
+
+  <!-- PRODUCT -->
+  <ng-container *ngIf="!loading && !error && product">
+
+    <section class="product-layout">
+
+      <!-- IMAGE GALLERY -->
+      <div class="gallery-section">
+
+        <div class="main-image">
+          <img
+            *ngIf="selectedImage"
+            [src]="selectedImage"
+            [alt]="product.name">
+
+          <div class="image-placeholder" *ngIf="!selectedImage">
+            <span>Image not available</span>
+          </div>
+        </div>
+
+        <div class="thumbnail-list" *ngIf="images.length > 1">
+          <button
+            type="button"
+            class="thumbnail"
+            *ngFor="let image of images"
+            [class.selected]="selectedImage === image"
+            (click)="selectImage(image)">
+
+            <img [src]="image" [alt]="product.name">
+          </button>
+        </div>
+
+        <p class="image-count" *ngIf="images.length">
+          {{ images.length }} product image(s)
+        </p>
+
+      </div>
+
+      <!-- PRODUCT INFORMATION -->
+      <div class="product-information">
+
+        <span class="category-label">{{ product.category }}</span>
+
+        <h1>{{ product.name }}</h1>
+
+        <div class="product-meta">
+          <span *ngIf="product.sku">SKU: {{ product.sku }}</span>
+          <span class="stock-status" [class.out-of-stock]="product.stock <= 0">
+            {{ product.stock > 0 ? 'In Stock' : 'Out of Stock' }}
+          </span>
+        </div>
+
+        <div class="price-section">
+
+          <strong class="current-price">
+            ₹{{ product.price | number:'1.2-2' }}
+          </strong>
+
+          <span
+            class="original-price"
+            *ngIf="product.originalPrice && product.originalPrice > product.price">
+            ₹{{ product.originalPrice | number:'1.2-2' }}
+          </span>
+
+          <span
+            class="discount-label"
+            *ngIf="discountPercentage > 0">
+            {{ discountPercentage }}% OFF
+          </span>
+
+        </div>
+
+        <div class="availability">
+          <span class="availability-dot"
+                [class.unavailable]="product.stock <= 0"></span>
+
+          {{ product.stock > 0
+            ? product.stock + ' units available'
+            : 'Currently unavailable' }}
+        </div>
+
+        <div class="product-description">
+          <h3>Product Description</h3>
+
+          <p *ngIf="product.description">
+            {{ product.description }}
+          </p>
+
+          <p *ngIf="!product.description" class="muted-text">
+            No description available for this product.
+          </p>
+        </div>
+
+        <div class="purchase-actions">
+
+          <button
+            type="button"
+            class="add-cart-button"
+            [disabled]="product.stock <= 0 || addingToCart"
+            (click)="addToCart()">
+
+            {{ addingToCart ? 'Adding...' : 'Add to Cart' }}
+          </button>
+
+          <button
+            type="button"
+            class="buy-now-button"
+            [disabled]="product.stock <= 0 || buyingNow"
+            (click)="buyNow()">
+
+            {{ buyingNow ? 'Please wait...' : 'Buy Now' }}
+          </button>
+
+        </div>
+
+        <div class="shopping-assurance">
+          <div>✓ Secure Shopping</div>
+          <div>✓ Quality Products</div>
+          <div>✓ Customer Support</div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- REVIEWS -->
+    <section class="reviews-section">
+
+      <div class="section-heading">
+        <div>
+          <h2>Customer Reviews</h2>
+          <p>What customers say about this product</p>
+        </div>
+
+        <div class="review-summary" *ngIf="reviews.length > 0">
+          <strong>{{ averageRating | number:'1.1-1' }}</strong>
+          <span class="summary-stars">★</span>
+          <small>{{ reviews.length }} review(s)</small>
+        </div>
+      </div>
+
+      <!-- NO REVIEWS -->
+      <div class="no-reviews" *ngIf="reviews.length === 0">
+        <div class="no-review-icon">☆</div>
+        <h3>No reviews yet</h3>
+        <p>There are no customer reviews for this product yet.</p>
+      </div>
+
+      <!-- REVIEW LIST -->
+      <div class="review-list" *ngIf="reviews.length > 0">
+
+        <article class="review-card" *ngFor="let review of reviews">
+
+          <div class="review-header">
+            <div class="customer-avatar">
+              {{ review.customerName?.charAt(0) || 'C' | uppercase }}
+            </div>
+
+            <div class="customer-info">
+              <strong>{{ review.customerName }}</strong>
+              <small *ngIf="review.createdAt">
+                {{ review.createdAt | date:'dd MMM yyyy' }}
+              </small>
+            </div>
+          </div>
+
+          <div class="review-stars">
+            <span *ngFor="let star of getStars(review.rating)"
+                  [class.empty-star]="!star">★</span>
+          </div>
+
+          <p class="review-message">{{ review.message }}</p>
+
+        </article>
+
+      </div>
+
+    </section>
+
+  </ng-container>
+
+</div>
