@@ -2,11 +2,46 @@
 <div class="details-page">
 
   <!-- TOP BAR -->
-  <div class="details-topbar">
-    <button class="back-button" type="button" routerLink="/">
-      <span>←</span> Back to Products
+  
+<div class="details-topbar">
+
+  <button class="back-button" type="button" routerLink="/">
+    <span>←</span> Back to Products
+  </button>
+
+  <div class="share-wrapper">
+
+    <button
+      class="share-button"
+      type="button"
+      (click)="toggleShareMenu()">
+      <span>↗</span> Share Product
     </button>
+
+    <div class="share-menu" *ngIf="shareMenuOpen">
+
+      <button
+        type="button"
+        class="share-option whatsapp-option"
+        (click)="shareOnWhatsApp()">
+        <span>◉</span>
+        Share on WhatsApp
+      </button>
+
+      <button
+        type="button"
+        class="share-option copy-option"
+        (click)="copyProductLink()">
+        <span>🔗</span>
+        {{ linkCopied ? '✓ Link Copied!' : 'Copy Product Link' }}
+      </button>
+
+    </div>
+
   </div>
+
+</div>
+
 
   <!-- LOADING -->
   <div class="loading-state" *ngIf="loading">

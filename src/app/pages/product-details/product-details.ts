@@ -47,6 +47,9 @@ export class ProductDetails implements OnInit {
   private cart = inject(CartService);
   private cdr = inject(ChangeDetectorRef);
 
+  shareMenuOpen = false;
+linkCopied = false; 
+
   private readonly API_URL = `${apiBaseUrl()}/api/products`;
 
   product: Product | null = null;
@@ -175,4 +178,39 @@ loadProduct(id: number): void {
   getStars(rating: number): boolean[] {
     return Array.from({ length: 5 }, (_, index) => index < rating);
   }
+
+  toggleShareMenu(): void {
+  this.shareMenuOpen = !this.shareMenuOpen;
+  this.linkCopied = false;
+}
+
+shareOnWhatsApp(): void {
+  if (!this.product) return;
+
+  const productUrl = window.location.href;
+
+  const message =
+    `Check out this product: ${this.product.name}\n` +
+    `Price: ₹${this.product.price}\n` +
+    `View Product: ${productUrl}`;
+
+  const whatsappUrl =
+    `https://wa.me/?text=${encodeURIComponent(message)}`;
+
+  window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+
+  this.shareMenuOpen = false;
+}
+
+async copyProductLink(): Promise<void> {
+  const productUrl = window.location.href;
+
+  try {
+    await navigator.clipboard.writeText(productUrl);
+    this.linkCopied = true;
+  } catch (error) {
+    console.error('Copy link error:', error);
+    window.prompt('Copy this product link:', productUrl);
+  }
+}
 }
