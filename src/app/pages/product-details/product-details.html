@@ -181,58 +181,83 @@
     </section>
 
     <!-- REVIEWS -->
-    <section class="reviews-section">
+   <!-- REVIEWS SECTION -->
+<section class="reviews-section">
 
-      <div class="section-heading">
-        <div>
-          <h2>Customer Reviews</h2>
-          <p>What customers say about this product</p>
+  <div class="reviews-heading">
+    <h2>Customer Reviews</h2>
+
+    <div class="review-summary" *ngIf="reviews.length > 0">
+      <strong>
+        {{ averageRating | number:'1.1-1' }}
+      </strong>
+
+      <span class="summary-stars">★</span>
+
+      <small>{{ reviews.length }} review(s)</small>
+    </div>
+  </div>
+
+  <!-- NO REVIEWS -->
+  <div class="no-reviews" *ngIf="reviews.length === 0">
+
+    <div class="no-review-icon">☆</div>
+
+    <h3>No reviews yet</h3>
+
+    <p>There are no customer reviews for this product yet.</p>
+
+  </div>
+
+  <!-- REVIEW LIST -->
+  <div class="review-list" *ngIf="reviews.length > 0">
+
+    <article class="review-card" *ngFor="let review of reviews">
+
+      <div class="review-header">
+
+        <div class="customer-avatar">
+          {{ review.customerName?.charAt(0) || 'C' | uppercase }}
         </div>
 
-        <div class="review-summary" *ngIf="reviews.length > 0">
-          <strong>{{ averageRating | number:'1.1-1' }}</strong>
-          <span class="summary-stars">★</span>
-          <small>{{ reviews.length }} review(s)</small>
+        <div class="customer-info">
+
+          <strong>{{ review.customerName }}</strong>
+
+          <small *ngIf="review.createdAt">
+            {{ review.createdAt | date:'dd MMM yyyy' }}
+          </small>
+
         </div>
-      </div>
-
-      <!-- NO REVIEWS -->
-      <div class="no-reviews" *ngIf="reviews.length === 0">
-        <div class="no-review-icon">☆</div>
-        <h3>No reviews yet</h3>
-        <p>There are no customer reviews for this product yet.</p>
-      </div>
-
-      <!-- REVIEW LIST -->
-      <div class="review-list" *ngIf="reviews.length > 0">
-
-        <article class="review-card" *ngFor="let review of reviews">
-
-          <div class="review-header">
-            <div class="customer-avatar">
-              {{ review.customerName?.charAt(0) || 'C' | uppercase }}
-            </div>
-
-            <div class="customer-info">
-              <strong>{{ review.customerName }}</strong>
-              <small *ngIf="review.createdAt">
-                {{ review.createdAt | date:'dd MMM yyyy' }}
-              </small>
-            </div>
-          </div>
-
-          <div class="review-stars">
-            <span *ngFor="let star of getStars(review.rating)"
-                  [class.empty-star]="!star">★</span>
-          </div>
-
-          <p class="review-message">{{ review.message }}</p>
-
-        </article>
 
       </div>
 
-    </section>
+      <!-- RATING -->
+      <div class="review-stars">
+        <span
+          *ngFor="let star of getStars(review.rating)"
+          [class.empty-star]="!star">
+          ★
+        </span>
+      </div>
+
+      <!-- REVIEW MESSAGE -->
+      <p class="review-message">
+        {{ review.message }}
+      </p>
+
+      <!-- CUSTOMER PHOTO -->
+      <img
+        *ngIf="review.photoUrl"
+        [src]="review.photoUrl"
+        alt="Customer review image"
+        class="review-photo">
+
+    </article>
+
+  </div>
+
+</section>
 
   </ng-container>
 

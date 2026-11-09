@@ -30,6 +30,7 @@ interface Review {
   customerName: string;
   rating: number;
   message: string;
+  photoUrl?: string;
   createdAt?: string;
 }
 
@@ -212,5 +213,23 @@ async copyProductLink(): Promise<void> {
     console.error('Copy link error:', error);
     window.prompt('Copy this product link:', productUrl);
   }
+}
+
+loadReviews(productId: number): void {
+  this.http
+    .get<Review[]>(`${this.API_URL}/${productId}/reviews`)
+    .subscribe({
+      next: (reviews) => {
+        this.reviews = reviews || [];
+        this.cdr.detectChanges();
+
+        console.log('Product Reviews:', this.reviews);
+      },
+      error: (err) => {
+        console.error('Reviews API Error:', err);
+        this.reviews = [];
+        this.cdr.detectChanges();
+      }
+    });
 }
 }
