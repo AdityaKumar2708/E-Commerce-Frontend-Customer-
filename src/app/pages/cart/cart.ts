@@ -15,6 +15,10 @@ export class Cart {
   private readonly router = inject(Router);
 
   buyAll(): void {
-    if (this.cart.items().length) this.router.navigate(['/checkout']);
+  if (this.cart.items().length > 0) {
+    this.router.navigate(['/checkout'], {
+      queryParams: { mode: 'cart' }
+    });
   }
+}
 }

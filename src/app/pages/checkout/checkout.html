@@ -443,149 +443,156 @@
     <aside class="order-summary">
       <h2>Order Summary</h2>
 
-      <div *ngIf="product; else missingProduct">
-        <div class="summary-product">
-          <div class="summary-image">📦</div>
-          <div>
-            <strong>{{ product.name }}</strong>
-            <p>{{ product.category }}</p>
-            <span>Qty: 1</span>
-          </div>
-        </div>
+      <div *ngIf="hasCheckoutItems; else missingProduct">
 
-        <!-- COUPON SECTION -->
-<div class="coupon-section">
-  <h3>Apply Coupon</h3>
+  <!-- CART PRODUCTS -->
+  <ng-container *ngIf="isCartCheckout; else singleProduct">
 
-  <div class="coupon-input-row">
-    <input
-      type="text"
-      name="couponCode"
-      [(ngModel)]="couponCode"
-      placeholder="Enter coupon code"
-      [disabled]="!!appliedCoupon"
-    />
+    <div class="summary-product" *ngFor="let item of cart.items()">
+      <div class="summary-image">📦</div>
 
-    <button
-      type="button"
-      (click)="applyCoupon()"
-      [disabled]="couponLoading || !!appliedCoupon"
-    >
-      {{ couponLoading ? 'Applying...' : 'Apply' }}
-    </button>
-  </div>
-
-  <p class="coupon-success" *ngIf="couponMessage">
-    {{ couponMessage }}
-  </p>
-
-  <p class="coupon-error" *ngIf="couponError">
-    {{ couponError }}
-  </p>
-
-  <div *ngIf="appliedCoupon" class="applied-coupon">
-    <span>
-      {{ appliedCoupon.code }} applied
-    </span>
-
-    <button type="button" (click)="removeCoupon()">
-      Remove
-    </button>
-  </div>
-
-  <div *ngIf="availableCoupons.length > 0" class="available-coupons">
-    <p>Available offers</p>
-
-    <div
-      *ngFor="let coupon of availableCoupons"
-      class="available-coupon"
-    >
       <div>
-        <strong>{{ coupon.code }}</strong>
-        <small>
-          <ng-container *ngIf="coupon.type === 'PERCENTAGE'">
-            {{ coupon.discountValue }}% OFF
-          </ng-container>
-
-          <ng-container *ngIf="coupon.type === 'FIXED'">
-            ₹{{ coupon.discountValue }} OFF
-          </ng-container>
-        </small>
-
-        <small *ngIf="coupon.minimumOrderValue">
-          Minimum order ₹{{ coupon.minimumOrderValue }}
-        </small>
+        <strong>{{ item.name }}</strong>
+        <p>{{ item.category }}</p>
+        <span>Qty: {{ item.quantity }}</span>
       </div>
+
+      <strong>
+        ₹{{ item.price * item.quantity | number:'1.2-2' }}
+      </strong>
+    </div>
+
+  </ng-container>
+
+  <!-- BUY NOW PRODUCT -->
+  <ng-template #singleProduct>
+    <div class="summary-product">
+      <div class="summary-image">📦</div>
+      <div>
+        <strong>{{ product?.name }}</strong>
+        <p>{{ product?.category }}</p>
+        <span>Qty: 1</span>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- COUPON SECTION -->
+  <div class="coupon-section">
+    <h3>Apply Coupon</h3>
+
+    <div class="coupon-input-row">
+      <input
+        type="text"
+        name="couponCode"
+        [(ngModel)]="couponCode"
+        placeholder="Enter coupon code"
+        [disabled]="!!appliedCoupon"
+      />
 
       <button
         type="button"
-        [disabled]="!!appliedCoupon"
-        (click)="couponCode = coupon.code; applyCoupon()"
+        (click)="applyCoupon()"
+        [disabled]="couponLoading || !!appliedCoupon"
       >
-        Apply
+        {{ couponLoading ? 'Applying...' : 'Apply' }}
       </button>
     </div>
-  </div>
-</div>
 
+    <p class="coupon-success" *ngIf="couponMessage">
+      {{ couponMessage }}
+    </p>
 
-<!-- PRODUCT PRICE -->
-<div class="summary-line">
-  <span>Price</span>
-  <strong>
-    ₹{{ product.price | number:'1.2-2' }}
-  </strong>
-</div>
+    <p class="coupon-error" *ngIf="couponError">
+      {{ couponError }}
+    </p>
 
-<!-- DELIVERY CHARGE -->
-<div class="summary-line" *ngIf="!isStorePickup">
-  <span>Delivery</span>
+    <div *ngIf="appliedCoupon" class="applied-coupon">
+      <span>{{ appliedCoupon.code }} applied</span>
+      <button type="button" (click)="removeCoupon()">Remove</button>
+    </div>
 
-  <strong *ngIf="shippingLoading">
-    Calculating...
-  </strong>
+    <div *ngIf="availableCoupons.length > 0" class="available-coupons">
+      <p>Available offers</p>
 
-  <strong *ngIf="!shippingLoading && !shippingError">
-    ₹{{ shippingCharge | number:'1.2-2' }}
-  </strong>
-</div>
+      <div
+        *ngFor="let coupon of availableCoupons"
+        class="available-coupon"
+      >
+        <div>
+          <strong>{{ coupon.code }}</strong>
+          <small *ngIf="coupon.type === 'PERCENTAGE'">
+            {{ coupon.discountValue }}% OFF
+          </small>
+          <small *ngIf="coupon.type === 'FIXED'">
+            ₹{{ coupon.discountValue }} OFF
+          </small>
+          <small *ngIf="coupon.minimumOrderValue">
+            Minimum order ₹{{ coupon.minimumOrderValue }}
+          </small>
+        </div>
 
-<!-- STORE PICKUP -->
-<div class="summary-line" *ngIf="isStorePickup">
-  <span>Store Pickup</span>
-  <strong>Free</strong>
-</div>
-
-<!-- SHIPPING ERROR -->
-<div class="shipping-error" *ngIf="shippingError">
-  {{ shippingError }}
-</div>
-
-<!-- COURIER INFO -->
-<div
-  class="shipping-info"
-  *ngIf="shippingQuote && !shippingLoading && !isStorePickup"
->
-  <span>{{ shippingQuote.courierName }}</span>
-  <span>{{ shippingQuote.estimatedDeliveryDays }} days</span>
-</div>
-
-
-<!-- FINAL TOTAL -->
-<div class="summary-total">
-  <span>Total</span>
-  <strong>
-    ₹{{ orderTotal | number:'1.2-2' }}
-  </strong>
-</div>
-
+        <button
+          type="button"
+          [disabled]="!!appliedCoupon"
+          (click)="couponCode = coupon.code; applyCoupon()"
+        >
+          Apply
+        </button>
       </div>
+    </div>
+  </div>
+
+  <!-- SUBTOTAL -->
+  <div class="summary-line">
+    <span>Subtotal</span>
+    <strong>
+      ₹{{ checkoutSubtotal | number:'1.2-2' }}
+    </strong>
+  </div>
+
+  <!-- DELIVERY -->
+  <div class="summary-line" *ngIf="!isStorePickup">
+    <span>Delivery</span>
+
+    <strong *ngIf="shippingLoading">Calculating...</strong>
+
+    <strong *ngIf="!shippingLoading && !shippingError">
+      ₹{{ shippingCharge | number:'1.2-2' }}
+    </strong>
+  </div>
+
+  <div class="summary-line" *ngIf="isStorePickup">
+    <span>Store Pickup</span>
+    <strong>Free</strong>
+  </div>
+
+  <div class="shipping-error" *ngIf="shippingError">
+    {{ shippingError }}
+  </div>
+
+  <div
+    class="shipping-info"
+    *ngIf="shippingQuote && !shippingLoading && !isStorePickup"
+  >
+    <span>{{ shippingQuote.courierName }}</span>
+    <span>{{ shippingQuote.estimatedDeliveryDays }} days</span>
+  </div>
+
+  <!-- FINAL TOTAL -->
+  <div class="summary-total">
+    <span>Total</span>
+    <strong>
+      ₹{{ orderTotal | number:'1.2-2' }}
+    </strong>
+  </div>
+
+</div>
 
       <ng-template #missingProduct>
-        <p>Selected product is not available. Please return to the shop and select it again.</p>
-        <button type="button" class="back-button" (click)="goToShop()">
-          Back to Shop
-        </button>
+        <p>No products found for checkout. Please return to your cart.</p>
+<button type="button" class="back-button" (click)="goToShop()">
+  Back to Shop
+</button>
       </ng-template>
     </aside>
   </main>

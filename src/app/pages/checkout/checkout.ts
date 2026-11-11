@@ -16,6 +16,9 @@ import {
 import { apiBaseUrl } from '../../core/services/api-url';
 
 
+import { Cart } from '../../core/services/cart';  
+
+
 interface Product {
   id: number;
   name: string;
@@ -83,6 +86,9 @@ savedAddressLoading = false;
 savedAddressError = '';
 
 private cdr = inject(ChangeDetectorRef);
+readonly cart = inject(Cart);
+
+isCartCheckout = false; 
 
 shippingQuote: ShippingQuoteResponse | null = null;
 private shippingQuotePinCode: string | null = null;
@@ -90,6 +96,30 @@ private shippingQuotePinCode: string | null = null;
   private pinLookupSequence = 0;
 
   product: Product | null = null;
+  get checkoutItems(): Array<{ productId: number; quantity: number }> {
+  if (this.isCartCheckout) {
+    return this.cart.items().map(item => ({
+      productId: item.id,
+      quantity: item.quantity
+    }));
+  }
+
+  return this.product
+    ? [{ productId: this.product.id, quantity: 1 }]
+    : [];
+}
+
+get checkoutSubtotal(): number {
+  if (this.isCartCheckout) {
+    return this.cart.subtotal();
+  }
+
+  return Number(this.product?.price || 0);
+}
+
+get hasCheckoutItems(): boolean {
+  return this.checkoutItems.length > 0;
+}
 
   couponCode = '';
 couponLoading = false;
@@ -174,10 +204,14 @@ shippingError = '';
     if (!token) {
       this.router.navigate(['/login'], {
         queryParams: {
-          returnUrl: '/checkout',
-          action: 'buy-now',
-          productId: this.route.snapshot.queryParamMap.get('productId')
-        }
+  returnUrl: this.route.snapshot.queryParamMap.get('mode') === 'cart'
+    ? '/checkout?mode=cart'
+    : '/checkout',
+  action: this.route.snapshot.queryParamMap.get('mode') === 'cart'
+    ? 'buy-all'
+    : 'buy-now',
+  productId: this.route.snapshot.queryParamMap.get('productId')
+}
       });
 
       this.loadAvailableCoupons();
@@ -185,38 +219,50 @@ shippingError = '';
       return;
     }
 
-    
+    this.isCartCheckout =
+  this.route.snapshot.queryParamMap.get('mode') === 'cart';
+  this.loadAvailableCoupons();
 
-    let savedProduct: string | null = null;
+if (this.isCartCheckout) {
+  const items = this.cart.items();
 
-if (typeof window !== 'undefined') {
-  try {
-    savedProduct = sessionStorage.getItem('buyNowProduct');
-  } catch (error) {
-    console.error('Session storage access failed:', error);
+  if (!items.length) {
+    this.router.navigate(['/cart']);
+    return;
+  }
+
+  // Cart checkout is an online delivery order.
+  this.product = null;
+  this.isStorePickup = false;
+} else {
+  let savedProduct: string | null = null;
+
+  if (typeof window !== 'undefined') {
+    try {
+      savedProduct = sessionStorage.getItem('buyNowProduct');
+    } catch (error) {
+      console.error('Session storage access failed:', error);
+    }
+  }
+
+  if (savedProduct) {
+    try {
+      this.product = JSON.parse(savedProduct) as Product;
+
+      this.isStorePickup =
+        this.product?.fulfillmentType === 'STORE_PICKUP' ||
+        this.product?.salesChannel === 'STORE_PICKUP';
+    } catch {
+      this.product = null;
+      this.isStorePickup = false;
+    }
   }
 }
 
-    if (savedProduct) {
-
-      try {
-
-        this.product = JSON.parse(savedProduct) as Product;
-
-        /*
-         * Store Pickup can be identified from
-         * fulfillmentType saved by store-pickup.ts.
-         */
-        this.isStorePickup =
-          this.product?.fulfillmentType === 'STORE_PICKUP' ||
-          this.product?.salesChannel === 'STORE_PICKUP';
-
-      } catch {
-
-        this.product = null;
-        this.isStorePickup = false;
-      }
-    }
+if (!this.isCartCheckout && !this.product) {
+  this.error = 'Product information is missing.';
+  return;
+}
 
     // -----------------------------------
     // LOAD SAVED ADDRESS
@@ -484,14 +530,14 @@ applyCoupon(): void {
     return;
   }
 
-  if (!this.product) {
-    this.couponError = 'Product information is missing.';
-    return;
-  }
+  if (!this.hasCheckoutItems) {
+  this.couponError = 'No products found for checkout.';
+  return;
+}
 
   this.couponLoading = true;
 
-  const subtotal = Number(this.product.price);
+  const subtotal = this.checkoutSubtotal;
 
   this.http.get<any>(
     `${this.couponApi}/apply`,
@@ -539,10 +585,12 @@ removeCoupon(): void {
 
 // FINAL ORDER TOTAL
 get orderTotal(): number {
-  const subtotal = Number(this.product?.price || 0);
+  const subtotal = this.checkoutSubtotal;
+
   const delivery = this.isStorePickup
     ? 0
     : Number(this.shippingCharge || 0);
+
   const discount = Number(
     this.appliedCoupon?.discountAmount || 0
   );
@@ -828,10 +876,10 @@ get orderTotal(): number {
   return;
 }
 
-  if (!this.product) {
-    this.error = 'Product information is missing.';
-    return;
-  }
+  if (!this.hasCheckoutItems) {
+  this.error = 'No products found for checkout.';
+  return;
+}
 
   if (!this.isStorePickup && this.shippingLoading) {
   this.error = 'Please wait while delivery charge is calculated.';
@@ -910,7 +958,9 @@ this.http.post<RazorpayOrderResponse>(
         amount: response.amount,
         currency: response.currency,
         name: 'Rajesh Stationery & Novelty',
-        description: this.product?.name || 'Product Purchase',
+        description: this.isCartCheckout
+  ? `Cart Purchase (${this.cart.items().length} products)`
+  : this.product?.name || 'Product Purchase',
         order_id: response.orderId,
 
         prefill: {
@@ -927,18 +977,13 @@ this.http.post<RazorpayOrderResponse>(
 handler: (paymentResponse: any) => {
   const token = localStorage.getItem('authToken');
 
-  if (!token || !this.product) {
-    this.error = 'Please log in again before confirming your order.';
-    return;
-  }
+  if (!token || !this.hasCheckoutItems) {
+  this.error = 'Please log in again before confirming your order.';
+  return;
+}
 
   const orderRequest = {
-    items: [
-      {
-        productId: this.product.id,
-        quantity: 1
-      }
-    ],
+  items: this.checkoutItems,  
     fulfillmentType: this.isStorePickup ? 'STORE_PICKUP' : 'ONLINE',
     paymentMethod: 'RAZORPAY',
     customerName: this.contact.fullName.trim(),
@@ -958,7 +1003,9 @@ handler: (paymentResponse: any) => {
       ? 'Rajesh Stationery & Novelty'
       : undefined,
 
-    discount: 0,
+    discount: Number(
+  this.appliedCoupon?.discountAmount || 0
+),
     deliveryCharge: this.isStorePickup ? 0 : this.shippingCharge
   };
 
@@ -980,6 +1027,10 @@ handler: (paymentResponse: any) => {
       console.log('Verified payment and saved order:', savedOrder);
 
       alert(`Payment verified! Order number: ${savedOrder.orderNumber}`);
+
+      if (this.isCartCheckout) {
+  this.cart.clear();
+}
 
       this.router.navigate(['/orders']);
     },
@@ -1031,11 +1082,11 @@ handler: (paymentResponse: any) => {
 private getShippingQuote(pin: string): void {
   if (this.isStorePickup) return;
 
-  if (!this.product) {
-    this.shippingError = 'Product information is missing.';
-    this.cdr.detectChanges();
-    return;
-  }
+  if (!this.hasCheckoutItems) {
+  this.shippingError = 'No products found for checkout.';
+  this.cdr.detectChanges();
+  return;
+}
 
   if (!/^[1-9][0-9]{5}$/.test(pin)) {
     this.shippingError = 'Enter a valid 6-digit PIN code.';
@@ -1054,15 +1105,10 @@ private getShippingQuote(pin: string): void {
   this.cdr.detectChanges();
 
   const request = {
-    deliveryPincode: pin,
-    cod: this.selectedPayment === 'COD',
-    items: [
-      {
-        productId: this.product.id,
-        quantity: 1
-      }
-    ]
-  };
+  deliveryPincode: pin,
+  cod: this.selectedPayment === 'COD',
+  items: this.checkoutItems
+};
 
   this.http.post<ShippingQuoteResponse>(
     `${apiBaseUrl()}/api/shipping/quote`,
