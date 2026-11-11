@@ -89,6 +89,7 @@ loadProduct(id: number): void {
       console.log('Product API Response:', product);
 
       this.product = product;
+      this.loadReviews(id);
 
       const allImages = [
         ...(product.imageUrls || []),

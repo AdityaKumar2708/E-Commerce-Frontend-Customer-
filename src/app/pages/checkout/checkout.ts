@@ -1027,24 +1027,31 @@ handler: (paymentResponse: any) => {
   }
 
  
+
 private getShippingQuote(pin: string): void {
   if (this.isStorePickup) return;
 
   if (!this.product) {
     this.shippingError = 'Product information is missing.';
+    this.cdr.detectChanges();
     return;
   }
 
   if (!/^[1-9][0-9]{5}$/.test(pin)) {
     this.shippingError = 'Enter a valid 6-digit PIN code.';
+    this.cdr.detectChanges();
     return;
   }
 
+  // Start loading
   this.shippingLoading = true;
   this.shippingError = '';
   this.shippingQuote = null;
   this.shippingQuotePinCode = null;
   this.shippingCharge = 0;
+
+  // Immediately update the UI
+  this.cdr.detectChanges();
 
   const request = {
     deliveryPincode: pin,
@@ -1069,6 +1076,8 @@ private getShippingQuote(pin: string): void {
       if (!Number.isFinite(charge) || charge < 0) {
         this.shippingError =
           'The delivery service returned an invalid charge.';
+
+        this.cdr.detectChanges();
         return;
       }
 
@@ -1077,6 +1086,9 @@ private getShippingQuote(pin: string): void {
       this.shippingCharge = charge;
 
       console.log('Shipping quote confirmed:', response);
+
+      // Update UI after successful response
+      this.cdr.detectChanges();
     },
 
     error: (error) => {
@@ -1090,8 +1102,12 @@ private getShippingQuote(pin: string): void {
       this.shippingError =
         error?.error?.message ||
         'Unable to calculate delivery charge. Payment is blocked.';
+
+      // Update UI after failed response
+      this.cdr.detectChanges();
     }
   });
 }
+
 
 }
